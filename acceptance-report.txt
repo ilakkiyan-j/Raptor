@@ -1,35 +1,35 @@
 DOGFOOD 2026 acceptance report
-portal: http://localhost:8080
+portal: http://localhost:18080
 claimed: T1 T2
 fixtures: fixtures.json
 
 T1  gallery is public ................. FAIL
-       GET http://localhost:8080/projects
+       GET http://localhost:18080/projects
        no auth header
        got no response, wanted 200
 T1  project from fixtures shown ....... FAIL
-       GET http://localhost:8080/projects
+       GET http://localhost:18080/projects
        looked for any of these fixture project titles: 'Glass Signal', 'Small Meadow', 'Deep Compass'
        none of them appeared in the response body
        if your gallery paginates, make sure page one is what this route returns
 T1  closed event refuses submissions .. FAIL
-       POST http://localhost:8080/projects/new
+       POST http://localhost:18080/projects/new
        sent as participant; the fixture event closed 2026-03-01T18:00:00Z
        got no response, wanted 4xx
 T2  judge sees own scores ............. FAIL
-       GET http://localhost:8080/api/judge/scores
+       GET http://localhost:18080/api/judge/scores
        sent as judge_a
        got no response, wanted 200
 T2  judge cannot see peer scores ...... FAIL
-       GET http://localhost:8080/api/judges/jdg_07/scores
+       GET http://localhost:18080/api/judges/jdg_07/scores
        sent as judge_b; this is the url that returns judge_a's scores
        got no response, wanted 401 or 403
 T2  participant blocked ............... FAIL
-       GET http://localhost:8080/api/judge/scores
+       GET http://localhost:18080/api/judge/scores
        sent as participant
        got no response, wanted 401 or 403
 T2  csv export works .................. FAIL
-       GET http://localhost:8080/api/export.csv
+       GET http://localhost:18080/api/export.csv
        sent as organizer
        got no response, wanted 200
 
