@@ -1,22 +1,19 @@
 [portal]
-base_url = "http://localhost:8080"
+base_url = "http://localhost:18080"
 
 [tiers]
 claimed = ["T1", "T2"]
-pitch = "One sentence on what you built."
+pitch = "Offline event submission and judging portal with event-scoped roles, deadline checks and normalized results."
 
 [auth]
-# Whatever header proves you are this role. A cookie, a
-# bearer token, a basic auth string. Your seed script
-# prints these when the portal boots.
-organizer   = "Cookie: session=org_7f2a"
-judge_a     = "Cookie: session=jdg_a_91bc"
-judge_b     = "Cookie: session=jdg_b_44de"
-participant = "Cookie: session=prt_2e88"
+organizer = "Cookie: session=demo-org-29ced468c7410afa403da3619178b380"
+judge_a = "Cookie: session=demo-ja-c9e380efa065eb7f8187b4da697a180a"
+judge_b = "Cookie: session=demo-jb-075fd8b3282e0c498e18c273e803b268"
+participant = "Cookie: session=demo-pt-d7f97ed29e331c278823c9361109a54e"
 
 [routes]
-gallery      = "/projects"
-submit       = "/projects/new"
+gallery = "/projects"
+submit = "/projects/new"
 judge_scores = "/api/judge/scores"
-peer_scores  = "/api/judge/scores?judge=judge_a"
-csv_export   = "/api/export.csv"
+peer_scores = "/api/judges/jdg_07/scores"
+csv_export = "/api/export.csv"
