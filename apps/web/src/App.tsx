@@ -73,7 +73,7 @@ export default function App() {
               <span>Fixture Data Ready</span>
             </div>
             <p className="text-sm text-slate-400">
-              40 projects, 30 judges, and 8 tracks ready in <code className="text-xs bg-slate-800 px-1 py-0.5 rounded">fixtures.json</code> for instant frontend mocking.
+              41 projects, 30 judges, and 8 tracks ready in <code className="text-xs bg-slate-800 px-1 py-0.5 rounded">fixtures.json</code> for instant frontend mocking.
             </p>
           </div>
 

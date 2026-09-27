@@ -14,7 +14,7 @@ docker compose up --build
 ```
 
 * **Portal URL:** [http://localhost:8080](http://localhost:8080)
-* **API Documentation (Swagger):** [http://localhost:8080/api/docs](http://localhost:8080/api/docs)
+* **API Documentation (Swagger):** [http://localhost:8080/docs](http://localhost:8080/docs)
 * **Database:** SQLite (persisted locally in Docker volume)
 
 ---
@@ -68,7 +68,7 @@ raptor/
 ├── docker/
 │   └── nginx/default.conf     # Reverse proxy (Port 8080 ingress: / -> web, /api/ -> api)
 │
-├── fixtures.json              # Standard DOGFOOD hackathon dataset (40 projects, 30 judges)
+├── fixtures.json              # Standard DOGFOOD hackathon dataset (41 projects, 30 judges)
 ├── tests/                     # Unit, integration, and acceptance test suites
 └── run.py & spec.md           # Official DOGFOOD checker and brief
 ```
