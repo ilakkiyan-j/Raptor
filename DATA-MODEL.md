@@ -5,45 +5,47 @@
 Raptor uses a normalized relational data model managed through **sqlite3** and persisted in **SQLite**.
 
 The schema is built around the following domain principles:
-1. **Explicit Identity:** All primary identifiers are stable string keys (e.g. `evt_01`, `prj_01`, `jdg_01`) matching DOGFOOD convention.
-2. **UTC Timestamps:** All dates and deadlines are stored as ISO-8601 UTC strings.
-3. **Hard Boundary Isolation:** Evaluations and scores are explicitly tied to the evaluating judge and cannot be traversed or queried cross-judge by unauthorized actors.
-4. **Resilient Scoring:** Missing criteria or incomplete review batches are safely handled without corrupting overall event aggregates.
+1. **Explicit Identity:** Fixture primary identifiers remain stable string keys (e.g. `evt_01`, `prj_01`, `jdg_01`) matching DOGFOOD convention.
+2. **UTC Timestamps:** Event deadlines and application-created timestamps use ISO-8601 UTC strings.
+3. **Hard Boundary Isolation:** Ballots and scores are tied to a judge and project; API role checks restrict cross-judge reads.
+4. **Resilient Scoring:** Unreviewed assignments have no ballot and do not contribute a zero to score averages.
 
 ---
 
 ## 2. Entity Relationship Diagram
 
 ```text
-  ┌──────────────┐          ┌──────────────┐
-  │    Event     │ 1      * │    Track     │
-  │--------------│──────────│--------------│
-  │ id (PK)      │          │ id (PK)      │
-  │ name         │          │ event_id(FK) │
-  │ sub_close_at │          │ name         │
-  └──────┬───────┘          └──────────────┘
-         │ 1
-         │
-         │ *
-  ┌──────┴───────┐          ┌──────────────┐
-  │   Project    │ 1      * │  Evaluation  │ *      1 ┌──────────────┐
-  │--------------│──────────│--------------│──────────│     User     │
-  │ id (PK)      │          │ id (PK)      │          │--------------│
-  │ event_id(FK) │          │ project_id   │          │ id (PK)      │
-  │ team_id (FK) │          │ judge_id(FK) │          │ email        │
-  │ track_id(FK) │          │ comment      │          │ role         │
-  │ title        │          │ submitted_at │          └──────────────┘
-  │ summary      │          └──────┬───────┘
-  │ repo_url     │                 │ 1
-  │ submitted_at │                 │ *
-  └──────────────┘          ┌──────┴───────┐
-                            │  ScoreEntry  │
-                            │--------------│
-                            │ evaluation_id│
-                            │ criterion_key│
-                            │ score_value  │
-                            └──────────────┘
+  ┌───────────────────┐         ┌───────────────┐
+  │       Event       │ 1     * │     Track     │
+  │───────────────────│─────────│───────────────│
+  │ id (PK)           │         │ id (PK)       │
+  │ name              │         │ event_id (FK) │
+  │ submissions_close │         │ name          │
+  └─────────┬─────────┘         └───────────────┘
+            │ 1
+            │
+            │ *
+  ┌─────────┴─────────┐         ┌─────────────────┐ *    1 ┌───────────────┐
+  │      Project      │ 1     * │     Ballot      │────────│     Judge     │
+  │───────────────────│─────────│─────────────────│        │───────────────│
+  │ id (PK)           │         │ judge_id (PK)   │        │ id (PK)       │
+  │ event_id (FK)     │         │ project_id (PK) │        │ user_id (FK)  │
+  │ team_id (FK)      │         │ comment         │        └───────────────┘
+  │ track_id (FK)     │         │ submitted_at    │
+  │ title             │         └────────┬────────┘
+  │ summary           │                  │ 1
+  │ repo_url          │                  │ *
+  │ submitted_at      │         ┌────────┴────────┐
+  └───────────────────┘         │   BallotScore   │
+                                │─────────────────│
+                                │ judge_id (PK)   │
+                                │ project_id (PK) │
+                                │ criterion (PK)  │
+                                │ score           │
+                                └─────────────────┘
 ```
+
+The drawing keeps the original high-level layout. `Ballot` is keyed by the `(judge_id, project_id)` assignment; `BallotScore` adds a criterion to that composite key. The schema also has event roles, teams, membership, rubric criteria, invitations, sessions and audit records, listed below.
 
 ---
 
@@ -51,75 +53,70 @@ The schema is built around the following domain principles:
 
 ### 3.1 `User`
 Represents platform actors and security principals.
-- `id` (String, PK): e.g. `jdg_01`, `org_01`, `prt_01`.
-- `email` (String, Unique): User's email address.
-- `password_hash` (String, Nullable): Hashed password for standard login.
-- `name` (String): Display name.
-- `role` (Enum): `organizer`, `judge`, `participant`, `admin`, `visitor`.
-- `session_token` (String, Nullable): Direct session token for fixture test auth (e.g. `org_7f2a`).
+- `id` (TEXT, PK): application user ID such as `usr_...`; fixture judge IDs live in `judges`, not `users`.
+- `email` (TEXT, unique, case-insensitive): User's email address.
+- `name` (TEXT): Display name.
+- `salt` and `password_hash` (TEXT): Salt and PBKDF2-SHA256 hash for local login.
+- `roles` (separate table): `(user_id, event_id, role)` has a composite primary key. Stored roles are `organizer`, `judge`, `participant` or `admin`; visitors are public readers, not role rows.
+- `sessions` (separate table): Stores `token_hash` (PK), `user_id` (FK), `expires_at` and `csrf_token`. The browser's opaque session token is never stored in plaintext.
 
 ### 3.2 `Event`
 Represents a hackathon event.
-- `id` (String, PK): e.g. `evt_01`.
-- `name` (String): Event title (e.g. `Sample Hack 2026`).
-- `submissions_close` (DateTime UTC): Hard deadline after which submissions are rejected.
+- `id` (TEXT, PK): e.g. `evt_01`.
+- `name` (TEXT): Event title (e.g. `Sample Hack 2026`).
+- `submissions_close` (TEXT): ISO-8601 UTC deadline after which project writes are rejected.
+- `judging_close` (TEXT, nullable): Optional judging deadline added by the application.
 
 ### 3.3 `Track`
 Category or theme under an event.
-- `id` (String, PK): e.g. `trk_01`.
-- `event_id` (String, FK -> Event.id).
-- `name` (String): e.g. `Developer tools`.
+- `id` (TEXT, PK): e.g. `trk_01`.
+- `event_id` (TEXT, FK -> `events.id`).
+- `name` (TEXT): e.g. `Developer tools`; unique with `event_id`.
 
 ### 3.4 `Team` & `TeamMember`
 Participant teams.
-- `id` (String, PK): e.g. `tm_01`.
-- `name` (String): Team name.
-- `members` (Relationship -> Users by email).
+- `teams`: `id` (TEXT, PK), `event_id` (TEXT, FK -> `events.id`), `name` (TEXT).
+- `team_members`: `(team_id, user_id)` composite PK with FKs to `teams` and `users`. Membership is stored as rows, not a list of emails on `teams`.
+- `team_invites`: `token_hash` (TEXT, PK), `team_id` (FK), `email`, `expires_at`, optional `accepted_at`, and `created_by` (FK -> `users.id`). Raw invite tokens are not stored.
 
 ### 3.5 `Project`
 Hackathon project submission.
-- `id` (String, PK): e.g. `prj_01`.
-- `team_id` (String, FK -> Team.id).
-- `track_id` (String, FK -> Track.id).
-- `title` (String): Project name (e.g. `Quiet Hours`).
-- `summary` (Text): Short pitch.
-- `repo_url` (String): Public repository link.
-- `submitted_at` (DateTime UTC): Timestamp of submission.
-- `status` (Enum): `draft`, `submitted`.
+- `id` (TEXT, PK): e.g. `prj_01`.
+- `event_id`, `team_id`, `track_id` (TEXT, FKs to their respective tables).
+- `title`, `summary`, `repo_url` (TEXT): Project content; `repo_url` defaults to an empty string.
+- `submitted_at` (TEXT, nullable): Submission timestamp; a draft has none.
+- `state` (TEXT): `draft` or `submitted` (SQL CHECK constraint).
+- No unique constraint on team/title: duplicate-title fixture records remain separate.
 
 ### 3.6 `RubricCriterion`
-Weighted evaluation criteria defined by the organizer.
-- `id` (String, PK): e.g. `crit_functionality`.
-- `event_id` (String, FK -> Event.id).
-- `key` (String): e.g. `functionality`, `quality`.
-- `weight` (Float): Relative weight multiplier (e.g. `0.6`, `0.4`).
-- `max_score` (Integer): Maximum scale points (e.g. `5`).
+Weighted evaluation criteria defined for an event.
+- `(event_id, criterion)` (TEXT, composite PK); `event_id` references `events.id`.
+- `weight` (REAL, positive), `min_score` and `max_score` (INTEGER). Range validation occurs in the API.
+- Fixture criterion keys are `functionality`, `quality` and `innovation`; equal demo weights and range 1-5 are app-owned choices, not fixture fields.
 
-### 3.7 `Evaluation` & `ScoreEntry`
+### 3.7 `Assignment`, `Ballot` & `BallotScore`
 Judge scoring records.
-- `id` (String, PK): e.g. `eval_01`.
-- `project_id` (String, FK -> Project.id).
-- `judge_id` (String, FK -> User.id).
-- `comment` (Text, Nullable): Feedback note from the judge.
-- `is_complete` (Boolean): Whether all criteria have been submitted.
-- `submitted_at` (DateTime UTC): Submission timestamp.
-- **ScoreEntry:**
-  - `criterion_key` (String): e.g. `functionality`.
-  - `score` (Float/Int): Raw score value.
+- `judges`: `id` (TEXT, PK), `event_id` (FK -> `events.id`), `user_id` (FK -> `users.id`). `judge_tracks` links `(judge_id, track_id)` as a composite PK.
+- `assignments`: `(judge_id, project_id)` composite PK with FKs to `judges` and `projects`. An unreviewed assignment has no ballot.
+- `ballots`: `(judge_id, project_id)` composite PK and FK to its assignment; `comment` (TEXT, not null) and `submitted_at` (TEXT). Completion is represented by the ballot row, not an `is_complete` column.
+- `ballot_scores`: `(judge_id, project_id, criterion)` composite PK; score (INTEGER). The judge/project pair references the ballot; criterion presence and range are checked against the event rubric by the API.
+- `audit_events`: auto-increment integer `id`, `actor_id` and `event_id` FKs, `action`, `subject_id`, `happened_at`; records selected writes.
 
 ---
 
 ## 4. Fixture Ingestion Pipeline
 
-Raptor includes an idempotent fixture loader (`scripts/seed.py`) that reads `fixtures.json` and loads:
-1. `event` $\rightarrow$ populates `Event` record.
-2. `tracks` $\rightarrow$ populates `Track` records.
-3. `teams` $\rightarrow$ populates `Team` and participant `User` records.
-4. `judges` $\rightarrow$ populates `User` records with role `judge` and assigns track affinities.
-5. `projects` $\rightarrow$ populates `Project` records.
-6. `scores` $\rightarrow$ populates `Evaluation` and `ScoreEntry` records.
+The idempotent loader in `apps/api/app/seed.py` reads the unchanged root `fixtures.json` and loads:
+1. `event` $\rightarrow$ one event (`evt_01`, submissions closed `2026-03-01T18:00:00Z`).
+2. `tracks` $\rightarrow$ 8 track records.
+3. `teams` $\rightarrow$ 40 teams, member user records, memberships and participant roles.
+4. `judges` $\rightarrow$ 30 judges with linked users, judge roles and eligible tracks.
+5. `projects` $\rightarrow$ **41 submitted project records**, preserving their IDs and timestamps.
+6. `scores` $\rightarrow$ 126 assignments and ballots, and 378 criterion-score rows.
+
+The application separately creates an organizer and admin account and four fixed local checker sessions. Fixture ballots have no timestamp, so their stored `submitted_at` is synthetic import metadata, not a judge action time. An existing seeded event is not reimported on restart.
 
 ### Handling Awkward Cases in Fixtures:
-- **Missing scores / unfinished reviews:** Recorded as incomplete evaluations; excluded from completed score averages without crashing queries.
-- **Unvarying judge scores:** Handled cleanly by normalization algorithms with standard deviation zero-guards.
-- **Duplicate project submissions:** Deduplicated or flagged gracefully through unique constraints.
+- **Missing reviews:** No ballot row is invented for a missing review, and missing reviews do not count as zero.
+- **Unvarying judge scores:** Normalization uses a shrunk judge mean; it does not divide by standard deviation.
+- **Duplicate project records:** `prj_07` and `prj_41` both belong to `tm_07` and share a title. Both remain stored; there is no team/title uniqueness constraint.

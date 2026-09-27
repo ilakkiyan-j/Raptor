@@ -33,7 +33,6 @@ The platform follows a **Contract-First Monorepo Architecture** orchestrated wit
         React + Vite                                        FastAPI + Python
         TypeScript                                          Pydantic v2
         Tailwind CSS                                        sqlite3
-        Recharts                                                   │
              │                                                     │
              │                                                     ▼
              │                                              SQLite Database
@@ -49,6 +48,7 @@ The platform follows a **Contract-First Monorepo Architecture** orchestrated wit
 To satisfy the DOGFOOD one-command rule on `localhost:8080` while avoiding CORS preflight delays and cookie domain fragmentation:
 - **`http://localhost:8080/`** routes to the static React SPA served by Nginx.
 - **`http://localhost:8080/api/`** reverse-proxies to the FastAPI container on internal port 8000.
+- **`http://localhost:8080/projects`** (and `/projects/*`) is server-rendered by FastAPI as raw HTML, so the acceptance checker can read it without JavaScript.
 - Sessions use `HttpOnly; SameSite=Lax` cookies with `Path=/`, functioning seamlessly across UI and API.
 
 ### 3.2 Backend as the Sole Security Boundary
@@ -59,7 +59,7 @@ In accordance with DOGFOOD core scoring rules:
 
 ### 3.3 Zero External Dependencies (Air-Gapped Operation)
 Raptor boots and functions completely offline:
-- No external OAuth providers (local JWT cookie sessions).
+- No external OAuth providers (local server-side session tokens stored in the database).
 - No hosted database services (embedded SQLite).
 - No CDN script tags or remote web fonts (all fonts and assets compiled locally by Vite).
 - Automatic deterministic database seeding from `fixtures.json` on startup.
@@ -71,9 +71,9 @@ Raptor boots and functions completely offline:
 | Component | Technology | Directory | Responsibility |
 |---|---|---|---|
 | **Reverse Proxy** | Nginx Alpine | `docker/nginx/` | Port 8080 ingress, static frontend delivery, and `/api/` routing |
-| **Frontend SPA** | React 18, Vite, TS | `apps/web/` | Public gallery, submission workflows, organizer dashboards, scoring forms |
+| **Frontend SPA** | React 18, Vite, TS | `apps/web/` | Backend status badge and public gallery preview |
 | **Backend API** | FastAPI, Python 3.11 | `apps/api/` | Authentication, authorization, rubric management, score normalization, CSV export |
-| **Persistence** | sqlite3, SQLite | `/data/raptor.db` | ACID transactions, event records, audit logging |
+| **Persistence** | sqlite3, SQLite | `/data/portal.sqlite3` | ACID transactions, event records, audit logging |
 | **Acceptance** | Python Standard Lib | `run.py` | Official DOGFOOD compliance verification |
 
 ---
@@ -87,4 +87,4 @@ Raptor boots and functions completely offline:
 | **Database** | SQLite | Zero-configuration, zero-network overhead, instant local startup for self-hosting. |
 | **Frontend** | React 18 + Vite | Fast startup, deterministic production bundling, component modularity. |
 | **Styling** | Tailwind CSS | Utility-first, predictable bundled output without runtime CSS overhead. |
-| **Testing** | Pytest & HTTPX | Clean asynchronous API integration testing alongside `run.py`. |
+| **Testing** | unittest & TestClient | Seven backend integration tests through FastAPI TestClient, runnable alongside `run.py`. |
