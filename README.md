@@ -70,7 +70,7 @@ raptor/
 │
 ├── fixtures.json              # Standard DOGFOOD hackathon dataset (41 projects, 30 judges)
 ├── tests/                     # Unit, integration, and acceptance test suites
-└── run.py & spec.md           # Official DOGFOOD checker and brief
+└── run.py                     # Official DOGFOOD acceptance checker
 ```
 
 ---
@@ -81,10 +81,10 @@ When booted, Raptor pre-seeds the portal with the standard fixture data and prov
 
 | Role | Test Session Header | Capabilities |
 |---|---|---|
-| **Organizer** | `Cookie: session=org_7f2a` | Event management, judge assignment, rubric weighting, progress dashboard, CSV export |
-| **Judge A** | `Cookie: session=jdg_a_91bc` | Scoring assigned projects; restricted from viewing peer scores |
-| **Judge B** | `Cookie: session=jdg_b_44de` | Scoring assigned projects; restricted from viewing peer scores |
-| **Participant** | `Cookie: session=prt_2e88` | Team formation, project drafting/submission; restricted from judging |
+| **Organizer** | `Cookie: session=demo-org-29ced468c7410afa403da3619178b380` | Event management, judge assignment, rubric weighting, progress dashboard, CSV export |
+| **Judge A** | `Cookie: session=demo-ja-c9e380efa065eb7f8187b4da697a180a` | Scoring assigned projects; restricted from viewing peer scores |
+| **Judge B** | `Cookie: session=demo-jb-075fd8b3282e0c498e18c273e803b268` | Scoring assigned projects; restricted from viewing peer scores |
+| **Participant** | `Cookie: session=demo-pt-d7f97ed29e331c278823c9361109a54e` | Team formation, project drafting/submission; restricted from judging |
 | **Visitor** | *(No header)* | Browsing the public project gallery and search/filtering |
 
 ---
