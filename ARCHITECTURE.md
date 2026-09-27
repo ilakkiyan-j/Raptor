@@ -8,7 +8,7 @@ The platform follows a **Contract-First Monorepo Architecture** orchestrated wit
 - **Ingress:** Nginx reverse proxy listening on port 8080.
 - **Frontend (`apps/web`):** Single Page Application built with React 18, Vite, TypeScript, and Tailwind CSS.
 - **Backend (`apps/api`):** REST API built with FastAPI, Python 3.11, Pydantic v2, and sqlite3.
-- **Storage:** Local SQLite database with Alembic migration versioning.
+- **Storage:** Local SQLite database versioning.
 
 ---
 
@@ -33,7 +33,7 @@ The platform follows a **Contract-First Monorepo Architecture** orchestrated wit
         React + Vite                                        FastAPI + Python
         TypeScript                                          Pydantic v2
         Tailwind CSS                                        sqlite3
-        Recharts                                            Alembic Migrations
+        Recharts                                                   │
              │                                                     │
              │                                                     ▼
              │                                              SQLite Database
