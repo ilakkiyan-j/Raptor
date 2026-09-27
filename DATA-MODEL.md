@@ -2,7 +2,7 @@
 
 ## 1. Overview & Principles
 
-Raptor uses a normalized relational data model managed through **SQLAlchemy 2.0** and persisted in **SQLite**.
+Raptor uses a normalized relational data model managed through **sqlite3** and persisted in **SQLite**.
 
 The schema is built around the following domain principles:
 1. **Explicit Identity:** All primary identifiers are stable string keys (e.g. `evt_01`, `prj_01`, `jdg_01`) matching DOGFOOD convention.

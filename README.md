@@ -63,7 +63,7 @@ raptor/
 │
 ├── apps/
 │   ├── web/                   # Frontend: React 18, Vite, TypeScript, Tailwind CSS
-│   └── api/                   # Backend: FastAPI, SQLAlchemy 2.0, Alembic, Pydantic v2
+│   └── api/                   # Backend: FastAPI, sqlite3, Alembic, Pydantic v2
 │
 ├── docker/
 │   └── nginx/default.conf     # Reverse proxy (Port 8080 ingress: / -> web, /api/ -> api)
@@ -92,7 +92,7 @@ When booted, Raptor pre-seeds the portal with the standard fixture data and prov
 ## 📚 Technical Documentation
 
 - [ARCHITECTURE.md](ARCHITECTURE.md) — System design, Nginx ingress, C4 models, and boundary enforcement.
-- [DATA-MODEL.md](DATA-MODEL.md) — SQLite schema, SQLAlchemy models, and fixture transformations.
+- [DATA-MODEL.md](DATA-MODEL.md) — SQLite schema, sqlite3 models, and fixture transformations.
 - [JUDGING.md](JUDGING.md) — Rubrics, peer-score isolation security boundary, and score normalization math.
 - [tests/README.md](tests/README.md) — Testing strategy and test execution guide.
 

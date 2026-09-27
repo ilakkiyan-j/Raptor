@@ -7,7 +7,7 @@ Raptor is an open-source, self-hostable hackathon submission and judging platfor
 The platform follows a **Contract-First Monorepo Architecture** orchestrated with Docker Compose:
 - **Ingress:** Nginx reverse proxy listening on port 8080.
 - **Frontend (`apps/web`):** Single Page Application built with React 18, Vite, TypeScript, and Tailwind CSS.
-- **Backend (`apps/api`):** REST API built with FastAPI, Python 3.11, Pydantic v2, and SQLAlchemy 2.0.
+- **Backend (`apps/api`):** REST API built with FastAPI, Python 3.11, Pydantic v2, and sqlite3.
 - **Storage:** Local SQLite database with Alembic migration versioning.
 
 ---
@@ -32,7 +32,7 @@ The platform follows a **Contract-First Monorepo Architecture** orchestrated wit
           apps/web                                              apps/api
         React + Vite                                        FastAPI + Python
         TypeScript                                          Pydantic v2
-        Tailwind CSS                                        SQLAlchemy 2.0
+        Tailwind CSS                                        sqlite3
         Recharts                                            Alembic Migrations
              │                                                     │
              │                                                     ▼
@@ -73,7 +73,7 @@ Raptor boots and functions completely offline:
 | **Reverse Proxy** | Nginx Alpine | `docker/nginx/` | Port 8080 ingress, static frontend delivery, and `/api/` routing |
 | **Frontend SPA** | React 18, Vite, TS | `apps/web/` | Public gallery, submission workflows, organizer dashboards, scoring forms |
 | **Backend API** | FastAPI, Python 3.11 | `apps/api/` | Authentication, authorization, rubric management, score normalization, CSV export |
-| **Persistence** | SQLAlchemy, SQLite | `/data/raptor.db` | ACID transactions, event records, audit logging |
+| **Persistence** | sqlite3, SQLite | `/data/raptor.db` | ACID transactions, event records, audit logging |
 | **Acceptance** | Python Standard Lib | `run.py` | Official DOGFOOD compliance verification |
 
 ---
