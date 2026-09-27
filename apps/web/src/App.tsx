@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { apiRequest } from './lib/api';
 import { GalleryResponse } from './types';
 import { Trophy, CheckCircle2, Server, LayoutGrid } from 'lucide-react';
