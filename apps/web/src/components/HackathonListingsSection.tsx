@@ -102,6 +102,7 @@ export const HACKATHON_DATA: HackathonItem[] = [
     description:
       'Build specialized coding agents, local model evaluators, and self-healing pipelines that operate completely air-gapped without relying on external cloud LLM APIs.',
     prizePool: '$5,000 USD',
+    isDemoEvent: true,
     status: 'upcoming',
     statusLabel: 'REGISTRATION OPEN',
     statusColor: 'bg-amber-500/10 text-amber-400 border-amber-500/30',
@@ -139,6 +140,7 @@ export const HACKATHON_DATA: HackathonItem[] = [
     description:
       'Design secure enclaves, eBPF telemetry guardians, and microkernel isolation layers for high-assurance confidential computing environments.',
     prizePool: '$3,500 USD',
+    isDemoEvent: true,
     status: 'upcoming',
     statusLabel: 'REGISTRATION OPEN',
     statusColor: 'bg-purple-500/10 text-purple-400 border-purple-500/30',

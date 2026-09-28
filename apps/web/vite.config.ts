@@ -13,10 +13,25 @@ export default defineConfig({
   server: {
     port: 5173,
     proxy: {
+      // JSON API — always proxied
       '/api': {
+        target: 'http://localhost:8000',
+        changeOrigin: true,
+      },
+      // Session endpoints — bare paths not under /api, mirroring Nginx config
+      '/login': {
+        target: 'http://localhost:8000',
+        changeOrigin: true,
+      },
+      '/logout': {
+        target: 'http://localhost:8000',
+        changeOrigin: true,
+      },
+      '/me': {
         target: 'http://localhost:8000',
         changeOrigin: true,
       },
     },
   },
 });
+

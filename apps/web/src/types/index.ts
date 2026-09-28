@@ -188,4 +188,6 @@ export interface HackathonItem {
   prizes: Array<{ rank: string; title: string; amount: string; description: string }>;
   rules: string[];
   rubric: Array<{ criterion: string; weight: string; description: string }>;
+  /** True for placeholder events not yet real — shown with a DEMO badge */
+  isDemoEvent?: boolean;
 }

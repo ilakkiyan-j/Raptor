@@ -37,7 +37,7 @@ export const HackathonsPage: React.FC<HackathonsPageProps> = ({
         <div className="inline-flex items-center space-x-2 px-3.5 py-1 rounded-full bg-[#10141f] border border-slate-800 text-xs text-slate-300">
           <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
           <span className="font-mono text-[11px] uppercase tracking-wider text-slate-400">
-            RAPTOR EVENT DIRECTORY // 3 CONFIGURED HACKATHONS
+            RAPTOR EVENT DIRECTORY // 1 LIVE HACKATHON
           </span>
         </div>
 
@@ -140,13 +140,20 @@ export const HackathonsPage: React.FC<HackathonsPageProps> = ({
             <div className="absolute top-0 right-0 w-36 h-36 bg-amber-500/5 rounded-full blur-2xl group-hover:bg-amber-500/10 transition" />
 
             <div className="space-y-4 relative z-10">
-              <div className="flex items-center justify-between">
+              <div className="flex items-center justify-between gap-2">
                 <span className={`text-[10px] font-mono px-2.5 py-0.5 rounded-full border ${hackathon.statusColor}`}>
                   ● {hackathon.statusLabel}
                 </span>
-                <span className="text-[10px] font-mono text-slate-500">
-                  {hackathon.id}
-                </span>
+                <div className="flex items-center gap-1.5">
+                  {hackathon.isDemoEvent && (
+                    <span className="text-[10px] font-mono px-2 py-0.5 rounded-full border border-slate-400 bg-slate-200 text-slate-700 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-300 tracking-widest">
+                      DEMO
+                    </span>
+                  )}
+                  <span className="text-[10px] font-mono text-slate-500">
+                    {hackathon.id}
+                  </span>
+                </div>
               </div>
 
               <div>

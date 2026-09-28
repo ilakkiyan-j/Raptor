@@ -25,8 +25,8 @@ docker compose up --build
 |---|---|---|
 | **T1 Core** | **Claimed & Verified** | Full lifecycle: auth, roles, event setup, team invites, project submission with hard deadline enforcement, and public gallery. |
 | **T2 Judging** | **Claimed & Verified** | Weighted rubrics, strict backend peer-score isolation, live progress dashboard, defensible cross-judge normalization, and CSV export. |
-| **T3 Public** | **Claimed & Verified** | Anti-abuse community voting, threaded project discussion feeds, and deterministic fair ballot order shuffling. |
-| **T4 Stretch** | **Claimed & Verified** | Signed digital certificates with public cryptographic verifier, outbound webhooks with HMAC-SHA256 signatures, embeddable showcase iframe widgets, and bulk JSON event portability. |
+| **T3 Public** | Implemented (not verified by acceptance suite) | Anti-abuse community voting, threaded project discussion feeds, and deterministic fair ballot order shuffling. |
+| **T4 Stretch** | Implemented (not verified by acceptance suite) | Signed digital certificates with public cryptographic verifier, outbound webhooks with HMAC-SHA256 signatures, embeddable showcase iframe widgets, and bulk JSON event portability. |
 | **Bonus 1** | **Delivered** | Mathematical normalization proof & Bayesian shrinkage formulation in `JUDGING.md`. |
 | **Bonus 2** | **Delivered** | Bradley–Terry Maximum Likelihood Estimator (MLE) pairwise judging mode & rankings. |
 | **Bonus 3** | **Delivered** | Comprehensive STRIDE threat model & air-gapped security analysis in `THREAT-MODEL.md`. |

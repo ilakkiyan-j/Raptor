@@ -18,17 +18,10 @@ export const LandingPage: React.FC<LandingPageProps> = ({
 }) => {
   // Interactive Hero Preview state
   const [demoScore, setDemoScore] = useState(4);
-  const [copiedCurl, setCopiedCurl] = useState(false);
   const [copiedDocker, setCopiedDocker] = useState(false);
 
   // Active Role tab in Section 7
   const [activeRole, setActiveRole] = useState<'participant' | 'judge' | 'organizer' | 'admin' | 'visitor'>('judge');
-
-  const handleCopyCurl = () => {
-    navigator.clipboard.writeText('curl -sL https://raptor.sh | bash');
-    setCopiedCurl(true);
-    setTimeout(() => setCopiedCurl(false), 2000);
-  };
 
   const handleCopyDocker = () => {
     navigator.clipboard.writeText('docker compose up --build');
@@ -86,12 +79,12 @@ export const LandingPage: React.FC<LandingPageProps> = ({
         <div className="pt-2">
           <div className="inline-flex items-center space-x-3 px-4 py-2 rounded-lg bg-slate-100 dark:bg-[#0a0e16] border border-slate-200 dark:border-slate-800 text-xs font-mono text-slate-600 dark:text-slate-400 shadow-inner">
             <span className="text-amber-500 select-none">$</span>
-            <span className="text-slate-800 dark:text-slate-200">curl -sL https://raptor.sh | bash</span>
+            <span className="text-slate-800 dark:text-slate-200">docker compose up --build</span>
             <button
-              onClick={handleCopyCurl}
+              onClick={handleCopyDocker}
               className="text-amber-500 hover:text-amber-600 dark:hover:text-amber-300 transition text-[11px] uppercase font-semibold pl-2 border-l border-slate-300 dark:border-slate-700"
             >
-              {copiedCurl ? 'Copied!' : 'Copy'}
+              {copiedDocker ? 'Copied!' : 'Copy'}
             </button>
           </div>
         </div>

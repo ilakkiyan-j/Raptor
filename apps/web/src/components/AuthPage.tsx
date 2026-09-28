@@ -48,7 +48,6 @@ export const AuthPage: React.FC<AuthPageProps> = ({
   const [regEmail, setRegEmail] = useState('');
   const [regPassword, setRegPassword] = useState('');
   const [regOrganization, setRegOrganization] = useState('');
-  const [regRole, setRegRole] = useState<'participant' | 'judge' | 'organizer'>('participant');
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [successMsg, setSuccessMsg] = useState<string | null>(null);
@@ -69,7 +68,7 @@ export const AuthPage: React.FC<AuthPageProps> = ({
 
     try {
       const formData = new URLSearchParams();
-      formData.append('username', loginEmail.trim());
+      formData.append('email', loginEmail.trim());
       formData.append('password', loginPassword);
 
       const res = await fetch('/login', {
@@ -111,7 +110,6 @@ export const AuthPage: React.FC<AuthPageProps> = ({
             name: regName.trim(),
             email: regEmail.trim(),
             password: regPassword,
-            role: regRole,
             organization: regOrganization.trim(),
             event_id: 'evt_01',
           }),
@@ -120,7 +118,7 @@ export const AuthPage: React.FC<AuthPageProps> = ({
 
       setSuccessMsg(`Account created for ${regName}!`);
       setTimeout(() => {
-        onSuccess(data.role || regRole);
+        onSuccess(data.role || 'participant');
       }, 200);
     } catch (err: any) {
       setErrorMsg(err.message || 'Registration failed.');
@@ -296,61 +294,20 @@ export const AuthPage: React.FC<AuthPageProps> = ({
 
             <div className="space-y-1.5">
               <label className="font-medium text-slate-700 dark:text-slate-300">
-                Initial role
-              </label>
-              <div className="grid grid-cols-3 gap-2">
-                <button
-                  type="button"
-                  onClick={() => setRegRole('participant')}
-                  className={`py-2 px-2 rounded-lg border text-center transition font-medium text-xs ${
-                    regRole === 'participant'
-                      ? 'bg-emerald-500/10 border-emerald-500/50 text-emerald-600 dark:text-emerald-400 font-semibold'
-                      : 'bg-slate-50 dark:bg-[#0a0e16] border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400'
-                  }`}
-                >
-                  Participant
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setRegRole('judge')}
-                  className={`py-2 px-2 rounded-lg border text-center transition font-medium text-xs ${
-                    regRole === 'judge'
-                      ? 'bg-indigo-500/10 border-indigo-500/50 text-indigo-600 dark:text-indigo-400 font-semibold'
-                      : 'bg-slate-50 dark:bg-[#0a0e16] border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400'
-                  }`}
-                >
-                  Judge
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setRegRole('organizer')}
-                  className={`py-2 px-2 rounded-lg border text-center transition font-medium text-xs ${
-                    regRole === 'organizer'
-                      ? 'bg-amber-500/10 border-amber-500/50 text-amber-600 dark:text-amber-400 font-semibold'
-                      : 'bg-slate-50 dark:bg-[#0a0e16] border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400'
-                  }`}
-                >
-                  Organizer
-                </button>
-              </div>
-            </div>
-
-            <div className="space-y-1.5">
-              <label className="font-medium text-slate-700 dark:text-slate-300 flex items-center justify-between">
-                <span>{regRole === 'organizer' ? 'Host Organization / Company' : 'Organization / University (Optional)'}</span>
-                {regRole === 'organizer' && (
-                  <span className="text-[10px] text-amber-700 dark:text-amber-400 font-mono font-medium">Required for Organizers</span>
-                )}
+                Organization / University
+                <span className="ml-1 text-slate-400 font-normal">(Optional)</span>
               </label>
               <input
                 type="text"
-                required={regRole === 'organizer'}
                 value={regOrganization}
                 onChange={(e) => setRegOrganization(e.target.value)}
-                placeholder={regRole === 'organizer' ? 'e.g. Apex Innovation Labs / Hackathon raptors' : 'e.g. Stanford University, Google, Freelance'}
+                placeholder="e.g. Stanford University, Google, Freelance"
                 className="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 dark:bg-[#0a0e16] border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white placeholder-slate-400 text-xs focus:outline-none focus:ring-2 focus:ring-amber-500/50 transition"
               />
             </div>
+            <p className="text-[10px] text-slate-400 font-mono">
+              New accounts join as <strong className="text-emerald-600 dark:text-emerald-400">Participant</strong>. Judges and organizers are assigned by event admins.
+            </p>
 
             <button
               type="submit"

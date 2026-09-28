@@ -160,23 +160,25 @@ export const GalleryPage: React.FC<GalleryPageProps> = ({ currentUser, onNavigat
   // Fetch submitted projects from the API
   useEffect(() => {
     let isMounted = true;
-    apiRequest<{ projects: Project[] }>('/api/projects')
+    // /api/gallery returns real team & track names via SQL JOIN
+    apiRequest<{ items: Array<Project & { team: string; track: string }>; total: number }>('/api/gallery')
       .then((res) => {
-        if (isMounted && res.projects && res.projects.length > 0) {
-          const enriched = res.projects.map((p, idx) => {
-            const fallback = FALLBACK_PROJECTS[idx % FALLBACK_PROJECTS.length];
-            return {
-              ...fallback,
+        if (isMounted && res.items && res.items.length > 0) {
+          setProjects(
+            res.items.map((p) => ({
               ...p,
-              track_name: p.track_name || fallback.track_name,
-              team_name: p.team_name || fallback.team_name,
-            };
-          });
-          setProjects(enriched);
+              // /api/gallery uses 'team' and 'track' keys; normalise to the
+              // shared Project shape which uses team_name / track_name
+              team_name: p.team || p.team_name,
+              track_name: p.track || p.track_name,
+            }))
+          );
         }
+        // if items is empty the component keeps FALLBACK_PROJECTS (initial state)
       })
       .catch((err) => {
-        console.warn('Using seeded gallery projects:', err);
+        console.warn('Gallery API unavailable, showing demo projects:', err);
+        // FALLBACK_PROJECTS remain in state — already set as initial value
       })
       .finally(() => {
         if (isMounted) setLoading(false);

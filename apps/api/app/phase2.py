@@ -65,14 +65,15 @@ class RegisterIn(BaseModel):
 
 @router.post('/auth/register')
 def direct_register(body: RegisterIn, request: Request):
-    """Public registration with direct role assignment (participant, judge, organizer)."""
+    """Public self-registration. New accounts are always created as participant.
+    Judge / organizer / admin roles must be granted by an organizer or admin after signup."""
     email = body.email.strip().lower()
     if '@' not in email or email.startswith('@') or email.endswith('@'):
         raise HTTPException(422, 'Invalid email address')
-    
-    target_role = (body.role or 'participant').lower().strip()
-    if target_role not in ('participant', 'judge', 'organizer', 'admin'):
-        target_role = 'participant'
+
+    # Security: public registration is restricted to participant only.
+    # Privileged roles (judge, organizer, admin) must be assigned by an organizer/admin.
+    target_role = 'participant'
 
     with connect() as db:
         if db.execute('SELECT 1 FROM users WHERE email=?', (email,)).fetchone():
