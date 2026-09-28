@@ -1,0 +1,19 @@
+<svg width="40" height="40" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="raptorLogoGrad" x1="4" y1="4" x2="36" y2="36" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#f59e0b" />
+      <stop offset="60%" stop-color="#d97706" />
+      <stop offset="100%" stop-color="#b45309" />
+    </linearGradient>
+    <linearGradient id="raptorLogoAccent" x1="12" y1="8" x2="36" y2="28" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#fef3c7" stop-opacity="0.95" />
+      <stop offset="50%" stop-color="#fbbf24" stop-opacity="0.9" />
+      <stop offset="100%" stop-color="#f59e0b" stop-opacity="0.8" />
+    </linearGradient>
+  </defs>
+  <path d="M6 8L20 2L34 8V22C34 30.5 28 36.5 20 39C12 36.5 6 30.5 6 22V8Z" fill="#0b0f19" stroke="#f59e0b" stroke-opacity="0.3" stroke-width="1.5" stroke-linejoin="round" />
+  <path d="M13 11H17.5V29H13V11Z" fill="url(#raptorLogoGrad)" />
+  <path d="M17.5 11H25C27.76 11 30 13.24 30 16C30 18.76 27.76 21 25 21H17.5V11ZM21.5 14.5V17.5H24.5C25.33 17.5 26 16.83 26 16C26 15.17 25.33 14.5 24.5 14.5H21.5Z" fill="url(#raptorLogoGrad)" />
+  <path d="M21 19.5L28.5 29H23.5L17.5 21.5H21Z" fill="url(#raptorLogoGrad)" />
+  <path d="M12 24L31 8.5L25 14L12 24Z" fill="url(#raptorLogoAccent)" />
+</svg>

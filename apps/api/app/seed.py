@@ -11,19 +11,52 @@ if not FIXTURE.exists():
 DEMO_PASSWORD = 'dogfood-local-demo-only'
 TOKENS = {
  'organizer': 'demo-org-29ced468c7410afa403da3619178b380',
+ 'admin': 'demo-adm-8849b2c31e9f1a23',
  'judge_a': 'demo-ja-c9e380efa065eb7f8187b4da697a180a',
  'judge_b': 'demo-jb-075fd8b3282e0c498e18c273e803b268',
  'participant': 'demo-pt-d7f97ed29e331c278823c9361109a54e',
 }
+
+def ensure_demo_sessions(db, eid, judges, members):
+    def user(email, name):
+        uid = 'usr_' + hashlib.sha256(email.lower().encode()).hexdigest()[:20]
+        salt = hashlib.sha256(('local-demo-salt:' + uid).encode()).hexdigest()[:32]
+        db.execute('INSERT OR IGNORE INTO users VALUES (?,?,?,?,?)',
+                   (uid,email,name,salt,password_hash(DEMO_PASSWORD,salt)))
+        return uid
+    org = user('organizer@dogfood.local','Demo organizer')
+    adm = user('admin@dogfood.local','Demo admin')
+    db.execute('INSERT OR IGNORE INTO roles VALUES (?,?,?)',(org,eid,'organizer'))
+    db.execute('INSERT OR IGNORE INTO roles VALUES (?,?,?)',(adm,eid,'admin'))
+    create_session(db, org, TOKENS['organizer'], days=3650)
+    create_session(db, adm, TOKENS['admin'], days=3650)
+    if judges and 'jdg_07' in judges:
+        create_session(db, judges['jdg_07'], TOKENS['judge_a'], days=3650)
+    if judges and 'jdg_08' in judges:
+        create_session(db, judges['jdg_08'], TOKENS['judge_b'], days=3650)
+    if members and 'tm_01' in members and len(members['tm_01']) > 0:
+        create_session(db, members['tm_01'][0], TOKENS['participant'], days=3650)
 
 def init():
     f = json.loads(FIXTURE.read_text())
     event = f['event']; eid=event['id']
     with connect() as db:
         db.executescript(SCHEMA)
-        if 'judging_close' not in [r['name'] for r in db.execute('PRAGMA table_info(events)')]:
+        event_cols = [r['name'] for r in db.execute('PRAGMA table_info(events)')]
+        if 'judging_close' not in event_cols:
             db.execute('ALTER TABLE events ADD COLUMN judging_close TEXT')
+        if 'description' not in event_cols:
+            db.execute("ALTER TABLE events ADD COLUMN description TEXT DEFAULT ''")
+        if 'starts_at' not in event_cols:
+            db.execute('ALTER TABLE events ADD COLUMN starts_at TEXT')
+        project_cols = [r['name'] for r in db.execute('PRAGMA table_info(projects)')]
+        if 'demo_url' not in project_cols:
+            db.execute("ALTER TABLE projects ADD COLUMN demo_url TEXT DEFAULT ''")
+        if 'video_url' not in project_cols:
+            db.execute("ALTER TABLE projects ADD COLUMN video_url TEXT DEFAULT ''")
         if db.execute('SELECT 1 FROM events WHERE id=?',(eid,)).fetchone():
+            # Ensure admin and organizer sessions even if DB was previously seeded
+            ensure_demo_sessions(db, eid, {}, {})
             return
         def user(email, name):
             uid = 'usr_' + hashlib.sha256(email.lower().encode()).hexdigest()[:20]
@@ -51,7 +84,7 @@ def init():
             for track in j['tracks']:
                 db.execute('INSERT INTO judge_tracks VALUES (?,?)',(j['id'],track))
         for p in f['projects']:
-            db.execute('INSERT INTO projects VALUES (?,?,?,?,?,?,?, ?,?)',
+            db.execute('INSERT INTO projects(id,event_id,team_id,track_id,title,summary,repo_url,submitted_at,state) VALUES (?,?,?,?,?,?,?,?,?)',
                        (p['id'],eid,p['team'],p['track'],p['title'],p['summary'],p['repo_url'],p['submitted_at'],'submitted'))
         for criterion in ('functionality','quality','innovation'):
             db.execute('INSERT INTO rubric_criteria VALUES (?,?,?,?,?)',(eid,criterion,1.0,1,5))
@@ -67,7 +100,7 @@ def init():
         adm=user('admin@dogfood.local','Demo admin')
         db.execute('INSERT INTO roles VALUES (?,?,?)',(org,eid,'organizer'))
         db.execute('INSERT INTO roles VALUES (?,?,?)',(adm,eid,'admin'))
-        for role,uid in [('organizer',org),('judge_a',judges['jdg_07']),
+        for role,uid in [('organizer',org),('admin',adm),('judge_a',judges['jdg_07']),
                          ('judge_b',judges['jdg_08']),('participant',members['tm_01'][0])]:
             create_session(db,uid,TOKENS[role],days=3650)
         for table,expected in [('tracks',8),('judges',30),('teams',40),('projects',41),('ballots',126)]:

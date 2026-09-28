@@ -78,7 +78,54 @@ CREATE TABLE IF NOT EXISTS sessions (
  token_hash TEXT PRIMARY KEY, user_id TEXT NOT NULL REFERENCES users(id),
  expires_at TEXT NOT NULL, csrf_token TEXT NOT NULL
 );
+CREATE TABLE IF NOT EXISTS prizes (
+ id TEXT PRIMARY KEY, event_id TEXT NOT NULL REFERENCES events(id),
+ track_id TEXT REFERENCES tracks(id), title TEXT NOT NULL,
+ description TEXT NOT NULL DEFAULT '', amount TEXT NOT NULL DEFAULT '',
+ rank_order INTEGER NOT NULL DEFAULT 0
+);
+CREATE TABLE IF NOT EXISTS community_votes (
+ id TEXT PRIMARY KEY, event_id TEXT NOT NULL REFERENCES events(id),
+ project_id TEXT NOT NULL REFERENCES projects(id), voter_id TEXT REFERENCES users(id),
+ voter_email TEXT NOT NULL COLLATE NOCASE, ip_hash TEXT NOT NULL, created_at TEXT NOT NULL,
+ UNIQUE(event_id, voter_email, project_id)
+);
+CREATE TABLE IF NOT EXISTS project_comments (
+ id TEXT PRIMARY KEY, event_id TEXT NOT NULL REFERENCES events(id),
+ project_id TEXT NOT NULL REFERENCES projects(id), user_id TEXT REFERENCES users(id),
+ author_name TEXT NOT NULL, content TEXT NOT NULL, created_at TEXT NOT NULL
+);
+CREATE TABLE IF NOT EXISTS webhooks (
+ id TEXT PRIMARY KEY, event_id TEXT NOT NULL REFERENCES events(id),
+ url TEXT NOT NULL, secret TEXT NOT NULL, events_filter TEXT NOT NULL DEFAULT '*',
+ is_active INTEGER NOT NULL DEFAULT 1, created_at TEXT NOT NULL
+);
+CREATE TABLE IF NOT EXISTS webhook_deliveries (
+ id TEXT PRIMARY KEY, webhook_id TEXT NOT NULL REFERENCES webhooks(id) ON DELETE CASCADE,
+ event_type TEXT NOT NULL, payload TEXT NOT NULL, status_code INTEGER,
+ response_body TEXT, delivered_at TEXT NOT NULL
+);
+CREATE TABLE IF NOT EXISTS certificates (
+ id TEXT PRIMARY KEY, event_id TEXT NOT NULL REFERENCES events(id),
+ project_id TEXT NOT NULL REFERENCES projects(id), team_id TEXT NOT NULL REFERENCES teams(id),
+ recipient_name TEXT NOT NULL, award_title TEXT NOT NULL, issued_at TEXT NOT NULL,
+ signature TEXT NOT NULL
+);
+CREATE TABLE IF NOT EXISTS pairwise_comparisons (
+ id TEXT PRIMARY KEY, event_id TEXT NOT NULL REFERENCES events(id),
+ judge_id TEXT NOT NULL REFERENCES judges(id), track_id TEXT REFERENCES tracks(id),
+ winner_project_id TEXT NOT NULL REFERENCES projects(id),
+ loser_project_id TEXT NOT NULL REFERENCES projects(id),
+ created_at TEXT NOT NULL,
+ UNIQUE(judge_id, winner_project_id, loser_project_id)
+);
+CREATE INDEX IF NOT EXISTS idx_prizes_event ON prizes(event_id);
 CREATE INDEX IF NOT EXISTS projects_gallery ON projects(event_id,state,submitted_at);
+CREATE INDEX IF NOT EXISTS idx_votes_event_project ON community_votes(event_id, project_id);
+CREATE INDEX IF NOT EXISTS idx_comments_project ON project_comments(project_id, created_at);
+CREATE INDEX IF NOT EXISTS idx_webhooks_event ON webhooks(event_id);
+CREATE INDEX IF NOT EXISTS idx_certificates_project ON certificates(project_id);
+CREATE INDEX IF NOT EXISTS idx_pairwise_event ON pairwise_comparisons(event_id);
 """
 
 @contextmanager

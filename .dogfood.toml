@@ -2,8 +2,8 @@
 base_url = "http://localhost:8080"
 
 [tiers]
-claimed = ["T1", "T2"]
-pitch = "Offline event submission and judging portal with event-scoped roles, deadline checks and normalized results."
+claimed = ["T1", "T2", "T3", "T4"]
+pitch = "Self-contained, air-gapped hackathon platform with multi-judge empirical Z-score & Bradley-Terry normalizers, anti-abuse community voting, signed digital credentials, webhooks, and zero external cloud dependencies."
 
 [auth]
 organizer = "Cookie: session=demo-org-29ced468c7410afa403da3619178b380"

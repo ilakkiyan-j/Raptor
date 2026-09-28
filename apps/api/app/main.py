@@ -1,8 +1,8 @@
-"""Small offline portal: server-rendered public pages and event-scoped JSON API."""
 import csv
 import io
 import secrets
 import sqlite3
+from contextlib import asynccontextmanager
 from datetime import datetime, timezone
 from pathlib import Path
 from fastapi import FastAPI, HTTPException, Request
@@ -14,14 +14,15 @@ from .auth import actor, create_session, csrf, iso, password_hash, require_role,
 from .db import connect
 from .seed import init
 
-app = FastAPI(title='DOGFOOD portal', version='0.1.0')
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    init()
+    yield
+
+app = FastAPI(title='DOGFOOD portal', version='0.1.0', lifespan=lifespan)
 templates = Jinja2Templates(directory=str(Path(__file__).parent / 'templates'))
 app.mount('/static',StaticFiles(directory=str(Path(__file__).parent / 'static')),name='static')
 EVENT = 'evt_01'
-
-@app.on_event('startup')
-def startup():
-    init()
 
 def item(row):
     return dict(row) if row else None
@@ -83,6 +84,15 @@ def project_page(request: Request,project_id: str):
                      "WHERE p.id=? AND p.state='submitted'",(project_id,)).fetchone()
         if not p: raise HTTPException(404,'Project not found')
         return templates.TemplateResponse('project.html',{'request':request,'p':p})
+
+@app.get('/api/projects/{project_id}')
+def project_json(project_id: str):
+    with connect() as db:
+        p=db.execute("SELECT p.*,t.name AS track_name,tm.name AS team_name FROM projects p "
+                     "JOIN tracks t ON t.id=p.track_id JOIN teams tm ON tm.id=p.team_id "
+                     "WHERE p.id=? AND p.state='submitted'",(project_id,)).fetchone()
+        if not p: raise HTTPException(404,'Project not found')
+        return item(p)
 
 @app.get('/login', response_class=HTMLResponse)
 def login_page(request: Request):
@@ -164,7 +174,7 @@ async def new_project(request: Request):
         if not db.execute('SELECT 1 FROM tracks WHERE id=? AND event_id=?',(p.track_id,event['id'])).fetchone():
             raise HTTPException(422,'Track does not belong to event')
         project_id='prj_'+secrets.token_hex(12)
-        db.execute('INSERT INTO projects VALUES (?,?,?,?,?,?,?,?,?)',
+        db.execute('INSERT INTO projects(id,event_id,team_id,track_id,title,summary,repo_url,submitted_at,state) VALUES (?,?,?,?,?,?,?,?,?)',
                    (project_id,event['id'],p.team_id,p.track_id,p.title,p.summary,p.repo_url,None,'draft'))
         return {'id':project_id,'state':'draft'}
 
@@ -262,7 +272,9 @@ def export_csv(request: Request):
         return Response(out.getvalue(),media_type='text/csv',headers={'Content-Disposition':'attachment; filename="scores.csv"'})
 
 from .phase2 import router as phase2_router
+from .phase3_4 import router as phase3_4_router
 app.include_router(phase2_router)
+app.include_router(phase3_4_router)
 
 @app.get('/api/health')
 def health():

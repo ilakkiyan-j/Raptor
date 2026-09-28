@@ -2,16 +2,580 @@
 @tailwind components;
 @tailwind utilities;
 
+/* ================================================================ */
+/* BASE                                                              */
+/* ================================================================ */
+
 :root {
-  font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
+  font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   line-height: 1.5;
   font-weight: 400;
   color-scheme: dark;
+  /* Firefox scrollbar (WebKit rules live further down). */
+  scrollbar-color: #1c2028 #0a0e16;
+}
+
+html.light {
+  color-scheme: light;
+  scrollbar-color: #cbd5e1 #f1f5f9;
 }
 
 body {
   margin: 0;
   min-height: 100vh;
-  background-color: #030712;
-  color: #f9fafb;
+  background-color: #0a0e16;
+  color: #dfe2ee;
+  overflow-x: hidden;
+  background-image:
+    radial-gradient(at 15% 10%, rgba(245, 158, 11, 0.05) 0px, transparent 40%),
+    radial-gradient(at 85% 85%, rgba(16, 185, 129, 0.04) 0px, transparent 50%),
+    radial-gradient(at 50% 50%, rgba(99, 102, 241, 0.03) 0px, transparent 60%);
+  background-attachment: fixed;
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+html.light body {
+  background-color: #f8fafc;
+  color: #0f172a;
+  background-image:
+    radial-gradient(at 15% 10%, rgba(245, 158, 11, 0.08) 0px, transparent 40%),
+    radial-gradient(at 85% 85%, rgba(16, 185, 129, 0.06) 0px, transparent 50%),
+    radial-gradient(at 50% 50%, rgba(99, 102, 241, 0.04) 0px, transparent 60%);
+}
+
+/* ================================================================ */
+/* SCROLLBAR                                                         */
+/* ================================================================ */
+
+::-webkit-scrollbar {
+  width: 7px;
+  height: 7px;
+}
+
+::-webkit-scrollbar-track {
+  background: #0a0e16;
+}
+
+html.light ::-webkit-scrollbar-track {
+  background: #f1f5f9;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #1c2028;
+  border-radius: 4px;
+}
+
+html.light ::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #31353e;
+}
+
+html.light ::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+
+/* ================================================================ */
+/* TERMINAL GRID PATTERN                                             */
+/* ================================================================ */
+
+.bg-grid-pattern {
+  background-size: 32px 32px;
+  background-image:
+    linear-gradient(to right, rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+}
+
+html.light .bg-grid-pattern {
+  background-image:
+    linear-gradient(to right, rgba(0, 0, 0, 0.04) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(0, 0, 0, 0.04) 1px, transparent 1px);
+}
+
+/* ================================================================ */
+/* GLOW EFFECTS                                                      */
+/* ================================================================ */
+
+.amber-glow {
+  box-shadow: 0 0 24px -4px rgba(245, 158, 11, 0.3);
+}
+
+.emerald-glow {
+  box-shadow: 0 0 24px -4px rgba(16, 185, 129, 0.25);
+}
+
+html.light .amber-glow {
+  box-shadow: 0 4px 20px -2px rgba(245, 158, 11, 0.25), 0 2px 6px -1px rgba(0, 0, 0, 0.06);
+}
+
+html.light .emerald-glow {
+  box-shadow: 0 4px 20px -2px rgba(16, 185, 129, 0.25), 0 2px 6px -1px rgba(0, 0, 0, 0.06);
+}
+
+/* ================================================================ */
+/* FOCUS + SELECTION                                                 */
+/* ================================================================ */
+
+:focus-visible {
+  outline: 2px solid #f59e0b;
+  outline-offset: 2px;
+}
+
+html.light :focus-visible {
+  outline: 2px solid #b45309;
+  outline-offset: 2px;
+}
+
+::selection {
+  background-color: rgba(245, 158, 11, 0.25);
+  color: #0f172a;
+}
+
+/* Beats the `selection:bg-amber-500/20 selection:text-amber-300` utilities,
+   which put light yellow text on a light yellow wash. */
+html.light ::selection {
+  background-color: rgba(245, 158, 11, 0.3);
+  color: #0f172a;
+}
+
+/* ================================================================ */
+/* LIGHT MODE                                                        */
+/* ================================================================ */
+/* `darkMode: 'class'` in tailwind.config.js keys every `dark:` variant to the
+   same `<html>` class the toggle writes, so in light mode the unprefixed utility
+   is the one that renders. These rules correct the unprefixed utilities that
+   were authored for the dark palette. */
+
+/* --- Surfaces ---------------------------------------------------- */
+
+/* Intentional light-mode dark fills: outline buttons on a light CTA band. */
+html.light .bg-white\/10 {
+  background-color: rgba(15, 23, 42, 0.05) !important;
+}
+
+html.light .hover\:bg-white\/20:hover {
+  background-color: rgba(15, 23, 42, 0.1) !important;
+}
+
+html.light .border-white\/20 {
+  border-color: #cbd5e1 !important;
+}
+
+html.light .bg-gradient-to-br,
+html.light .bg-gradient-to-r {
+  background-image: linear-gradient(135deg, #ffffff 0%, #f8fafc 50%, #f1f5f9 100%) !important;
+  border-color: #cbd5e1 !important;
+  box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.06), 0 2px 6px -1px rgba(0, 0, 0, 0.04) !important;
+}
+
+html.light .bg-\[\#0a0e16\] {
+  background-color: #f1f5f9 !important;
+}
+
+html.light .bg-\[\#0a0e16\]\/90 {
+  background-color: rgba(241, 245, 249, 0.92) !important;
+}
+
+html.light .bg-\[\#0f131c\] {
+  background-color: #ffffff !important;
+  box-shadow: 0 2px 8px -2px rgba(0, 0, 0, 0.05);
+}
+
+html.light .bg-\[\#141824\] {
+  background-color: #f8fafc !important;
+}
+
+html.light .bg-\[\#10141f\] {
+  background-color: #f1f5f9 !important;
+}
+
+html.light .bg-\[\#181c24\] {
+  background-color: #e2e8f0 !important;
+}
+
+/* --- Borders ----------------------------------------------------- */
+
+html.light .border-slate-800,
+html.light .border-slate-800\/80,
+html.light .border-slate-800\/90,
+html.light .border-slate-800\/60 {
+  border-color: #e2e8f0 !important;
+}
+
+html.light .border-slate-700,
+html.light .border-slate-700\/80 {
+  border-color: #cbd5e1 !important;
+}
+
+/* --- Typography: neutrals ---------------------------------------- */
+
+html.light .text-white {
+  color: #0f172a !important;
+}
+
+html.light .text-slate-200,
+html.light .text-slate-300 {
+  color: #1e293b !important;
+}
+
+html.light .text-slate-400 {
+  color: #475569 !important;
+}
+
+html.light .text-slate-500 {
+  color: #475569 !important; /* slate-600 - #64748b was 4.34:1 on #f1f5f9 */
+}
+
+/* --- Typography: accents ----------------------------------------- */
+/* The light-mode accent in the components is the `-500`/`-600` shade (paired
+   with a `dark:text-*-400`), so that is what has to be darkened here. Mapping
+   `-400`/`-300` alone left every primary accent label at 2.3-2.7:1 on white.
+   All values below clear WCAG AA (>=4.5:1) against #ffffff, #f8fafc and #f1f5f9. */
+
+html.light .text-amber-500,
+html.light .text-amber-400 {
+  color: #92400e !important; /* amber-800 - #b45309 was 4.26:1 on the amber-500/10 wash */
+}
+
+html.light .text-amber-600,
+html.light .text-amber-700,
+html.light .text-amber-300 {
+  color: #78350f !important; /* amber-900 */
+}
+
+html.light .text-emerald-500,
+html.light .text-emerald-400 {
+  color: #047857 !important; /* emerald-700 - was #10b981 at 2.7:1 */
+}
+
+html.light .text-emerald-600,
+html.light .text-emerald-300 {
+  color: #065f46 !important; /* emerald-800 */
+}
+
+html.light .text-indigo-500,
+html.light .text-indigo-600,
+html.light .text-indigo-400,
+html.light .text-indigo-300 {
+  color: #4338ca !important; /* indigo-700 */
+}
+
+html.light .text-purple-500 {
+  color: #7e22ce !important; /* purple-700 - was #a855f7 at 4.7:1 */
+}
+
+html.light .text-purple-600,
+html.light .text-purple-400,
+html.light .text-purple-300 {
+  color: #6b21a8 !important; /* purple-700 */
+}
+
+html.light .text-rose-500 {
+  color: #be123c !important; /* rose-700 - #e11d48 was 4.13:1 on the rose-500/10 wash */
+}
+
+html.light .text-rose-600,
+html.light .text-rose-400,
+html.light .text-rose-300 {
+  color: #9f1239 !important; /* rose-800 */
+}
+
+html.light .text-cyan-500,
+html.light .text-cyan-400 {
+  color: #0e7490 !important; /* cyan-700 - was #06b6d4 at 2.6:1 */
+}
+
+html.light .text-cyan-600,
+html.light .text-cyan-300 {
+  color: #155e75 !important; /* cyan-800 */
+}
+
+html.light .text-sky-500,
+html.light .text-sky-400 {
+  color: #0369a1 !important; /* sky-700 - was #0ea5e9 at 3.0:1 */
+}
+
+html.light .text-sky-600,
+html.light .text-sky-300 {
+  color: #075985 !important; /* sky-800 */
+}
+
+html.light .text-teal-500,
+html.light .text-teal-600,
+html.light .text-teal-400 {
+  color: #0f766e !important; /* teal-700 - was #2dd4bf at 1.6:1 */
+}
+
+html.light .text-teal-300 {
+  color: #115e59 !important; /* teal-800 */
+}
+
+/* --- Tinted washes and pill badges ------------------------------- */
+/* Alpha of a 500-shade wash has to be raised in light mode: at the dark
+   palette's alpha it lands under 1.5:1 against the page. */
+
+html.light .bg-amber-500\/5 {
+  background-color: rgba(245, 158, 11, 0.1) !important;
+}
+html.light .bg-emerald-500\/5 {
+  background-color: rgba(16, 185, 129, 0.1) !important;
+}
+html.light .bg-indigo-500\/5 {
+  background-color: rgba(99, 102, 241, 0.1) !important;
+}
+html.light .bg-rose-500\/5 {
+  background-color: rgba(244, 63, 94, 0.1) !important;
+}
+
+html.light .bg-amber-500\/10 {
+  background-color: rgba(245, 158, 11, 0.15) !important;
+}
+html.light .bg-emerald-500\/10 {
+  background-color: rgba(16, 185, 129, 0.15) !important;
+}
+html.light .bg-indigo-500\/10 {
+  background-color: rgba(99, 102, 241, 0.15) !important;
+}
+html.light .bg-purple-500\/10 {
+  background-color: rgba(168, 85, 247, 0.15) !important;
+}
+html.light .bg-rose-500\/10 {
+  background-color: rgba(244, 63, 94, 0.15) !important;
+}
+html.light .bg-teal-500\/10 {
+  background-color: rgba(20, 184, 166, 0.15) !important;
+}
+
+html.light .bg-amber-500\/20 {
+  background-color: rgba(245, 158, 11, 0.25) !important;
+}
+html.light .bg-emerald-500\/20 {
+  background-color: rgba(16, 185, 129, 0.25) !important;
+}
+html.light .bg-indigo-500\/20 {
+  background-color: rgba(99, 102, 241, 0.25) !important;
+}
+html.light .bg-rose-500\/20 {
+  background-color: rgba(244, 63, 94, 0.25) !important;
+}
+
+html.light .hover\:bg-amber-500\/10:hover {
+  background-color: rgba(245, 158, 11, 0.15) !important;
+}
+html.light .hover\:bg-emerald-500\/10:hover {
+  background-color: rgba(16, 185, 129, 0.15) !important;
+}
+html.light .hover\:bg-indigo-500\/10:hover {
+  background-color: rgba(99, 102, 241, 0.15) !important;
+}
+html.light .group-hover\:bg-amber-500\/10:hover {
+  background-color: rgba(245, 158, 11, 0.15) !important;
+}
+
+html.light .border-amber-500\/20,
+html.light .border-amber-500\/30,
+html.light .border-amber-500\/40 {
+  border-color: rgba(217, 119, 6, 0.35) !important;
+}
+html.light .border-amber-500\/50,
+html.light .border-amber-500\/60,
+html.light .hover\:border-amber-500\/40:hover,
+html.light .hover\:border-amber-500\/50:hover {
+  border-color: rgba(217, 119, 6, 0.45) !important;
+}
+
+html.light .border-emerald-500\/20,
+html.light .border-emerald-500\/30,
+html.light .border-emerald-500\/40 {
+  border-color: rgba(5, 150, 105, 0.35) !important;
+}
+html.light .border-emerald-500\/50,
+html.light .hover\:border-emerald-500\/50:hover {
+  border-color: rgba(5, 150, 105, 0.45) !important;
+}
+
+html.light .border-indigo-500\/20,
+html.light .border-indigo-500\/30,
+html.light .border-indigo-500\/40 {
+  border-color: rgba(79, 70, 229, 0.35) !important;
+}
+html.light .border-indigo-500\/50,
+html.light .hover\:border-indigo-500\/50:hover {
+  border-color: rgba(79, 70, 229, 0.45) !important;
+}
+
+html.light .border-purple-500\/20,
+html.light .border-purple-500\/30 {
+  border-color: rgba(147, 51, 234, 0.35) !important;
+}
+
+html.light .border-rose-500\/20,
+html.light .border-rose-500\/30 {
+  border-color: rgba(225, 29, 72, 0.35) !important;
+}
+
+html.light .border-teal-500\/20,
+html.light .border-teal-500\/40 {
+  border-color: rgba(13, 148, 136, 0.35) !important;
+}
+
+/* --- Filled buttons ---------------------------------------------- */
+/* These carry `text-slate-50` on a -600 fill. In light mode the fill is darkened
+   a step (600 -> 700, hover 500 -> 800) to keep the label at >=4.5:1. */
+
+html.light .bg-emerald-600 {
+  background-color: #047857 !important; /* emerald-700 */
+}
+html.light .hover\:bg-emerald-500:hover {
+  background-color: #065f46 !important; /* emerald-800 */
+}
+
+html.light .bg-cyan-600 {
+  background-color: #0e7490 !important; /* cyan-700 */
+}
+html.light .hover\:bg-cyan-500:hover {
+  background-color: #155e75 !important; /* cyan-800 */
+}
+
+html.light .bg-indigo-600 {
+  background-color: #4338ca !important; /* indigo-700 */
+}
+html.light .hover\:bg-indigo-500:hover {
+  background-color: #3730a3 !important; /* indigo-800 */
+}
+
+html.light .bg-purple-600 {
+  background-color: #6b21a8 !important; /* purple-700 */
+}
+html.light .hover\:bg-purple-500:hover {
+  background-color: #581c87 !important; /* purple-800 */
+}
+
+html.light .bg-sky-600 {
+  background-color: #0369a1 !important; /* sky-700 */
+}
+html.light .hover\:bg-sky-500:hover {
+  background-color: #075985 !important; /* sky-800 */
+}
+
+/* --- Button hover surfaces ---------------------------------------- */
+
+html.light .hover\:bg-\[\#1a2030\]:hover,
+html.light .hover\:bg-\[\#202632\]:hover,
+html.light .hover\:bg-\[\#181c24\]:hover,
+html.light .hover\:bg-\[\#181c26\]:hover,
+html.light .hover\:bg-\[\#181d2a\]:hover {
+  background-color: #e2e8f0 !important;
+}
+
+html.light .hover\:bg-\[\#141824\]:hover {
+  background-color: #f1f5f9 !important;
+}
+
+html.light .bg-\[\#141822\] {
+  background-color: #f8fafc !important;
+}
+
+/* --- Inputs ------------------------------------------------------- */
+
+html.light input,
+html.light select,
+html.light textarea {
+  color: #0f172a !important;
+  background-color: #ffffff !important;
+  border-color: #cbd5e1 !important;
+}
+
+html.light input::placeholder,
+html.light textarea::placeholder {
+  color: #94a3b8 !important;
+}
+
+/* --- Navbar ------------------------------------------------------- */
+
+html.light header {
+  background-color: rgba(255, 255, 255, 0.9) !important;
+  border-bottom-color: #e2e8f0 !important;
+}
+
+/* ================================================================ */
+/* DARK ISOLES                                                       */
+/* ================================================================ */
+/* Surfaces that are meant to stay dark in light mode (the mock terminal window)
+   would otherwise pick up the neutrals and accents above and drop to ~1.4:1.
+   Placed last so it wins on specificity (0,3,1 vs 0,2,1). Apply `.dark-isolate`
+   to the dark surface, not to its children. */
+
+html.light .dark-isolate {
+  color-scheme: dark;
+}
+
+html.light .dark-isolate .text-white {
+  color: #f8fafc !important;
+}
+
+html.light .dark-isolate .text-slate-200,
+html.light .dark-isolate .text-slate-300 {
+  color: #e2e8f0 !important;
+}
+
+html.light .dark-isolate .text-slate-400,
+html.light .dark-isolate .text-slate-500 {
+  color: #94a3b8 !important;
+}
+
+html.light .dark-isolate .text-amber-300,
+html.light .dark-isolate .text-amber-400 {
+  color: #fbbf24 !important;
+}
+
+html.light .dark-isolate .text-emerald-300,
+html.light .dark-isolate .text-emerald-400 {
+  color: #34d399 !important;
+}
+
+html.light .dark-isolate .text-cyan-300,
+html.light .dark-isolate .text-cyan-400 {
+  color: #22d3ee !important;
+}
+
+html.light .dark-isolate .border-slate-700,
+html.light .dark-isolate .border-slate-700\/80 {
+  border-color: #334155 !important;
+}
+
+html.light .dark-isolate .border-slate-800 {
+  border-color: #1e293b !important;
+}
+
+/* ================================================================ */
+/* DARK-MODE NEUTRAL REPAIR                                         */
+/* ================================================================ */
+/* The `html.light` block above exists because the light palette needs
+   darkening. Dark mode has the mirror-image problem: `text-slate-500` and
+   `text-slate-600` are *light-theme* muteds, so the ~50 call sites that never
+   received a `dark:` variant rendered at their light value on a dark surface
+   and dropped to 1.9-4.1:1. Measured against the darkest (#0a0e16) and the
+   lightest (#1e293b) surface actually used in the app:
+
+     text-slate-500 #64748b -> 4.06:1 / 3.07:1   (needs 4.5)
+     text-slate-600 #475569 -> 2.55:1 / 1.93:1
+
+   Both are remapped here. The ancestor is wrapped in `:where()` on purpose:
+   it drops the `html.dark` contribution to zero, leaving these rules at
+   specificity (0,1,0). That ties the plain utility (also 0,1,0) and wins on
+   source order because this file is imported after `@tailwind utilities`, but
+   still loses to a deliberate `dark:text-*-*` at (0,2,0) -- so the 54
+   existing explicit dark variants keep their intended values. Writing this as
+   plain `html.dark .text-slate-500` would be (0,2,1) and would silently
+   flatten all of them. */
+
+:where(html.dark) .text-slate-500 {
+  color: #94a3b8; /* slate-400 - 7.53:1 on #0a0e16, 5.71:1 on #1e293b */
+}
+
+:where(html.dark) .text-slate-600 {
+  color: #cbd5e1; /* slate-300 - 13.01:1 / 9.85:1 */
 }
