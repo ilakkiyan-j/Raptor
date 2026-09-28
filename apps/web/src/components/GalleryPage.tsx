@@ -17,106 +17,6 @@ interface ProjectComment {
   created_at: string;
 }
 
-// Fallback curated projects representing authentic hackathon entries
-const FALLBACK_PROJECTS: Project[] = [
-  {
-    id: 'prj_01',
-    title: 'Glass Signal',
-    summary: 'Autonomous distributed telemetry pipeline with zero external dependencies and cryptographic integrity verification.',
-    repo_url: 'https://github.com/raptor-ecosystem/glass-signal',
-    demo_url: 'https://glass-signal.raptor.dev',
-    track_id: 'trk_01',
-    track_name: 'Developer Tools',
-    team_name: 'Vector Dynamics',
-    submitted_at: '2026-02-28T21:40:00Z',
-    state: 'submitted',
-  },
-  {
-    id: 'prj_02',
-    title: 'Small Meadow',
-    summary: 'Decentralized ecological soil sensing mesh running on LoRaWAN edge nodes with real-time anomaly detection.',
-    repo_url: 'https://github.com/raptor-ecosystem/small-meadow',
-    demo_url: 'https://meadow.raptor.dev',
-    track_id: 'trk_05',
-    track_name: 'Climate',
-    team_name: 'Flora Systems',
-    submitted_at: '2026-02-28T21:48:00Z',
-    state: 'submitted',
-  },
-  {
-    id: 'prj_03',
-    title: 'Deep Compass',
-    summary: 'Empirical Bayes score normalizer and multi-judge bias mitigation dashboard for offline hackathons.',
-    repo_url: 'https://github.com/raptor-ecosystem/deep-compass',
-    demo_url: 'https://compass.raptor.dev',
-    track_id: 'trk_02',
-    track_name: 'Data & Analytics',
-    team_name: 'Bayes Collective',
-    submitted_at: '2026-02-28T21:55:00Z',
-    state: 'submitted',
-  },
-  {
-    id: 'prj_04',
-    title: 'Green Switch',
-    summary: 'Hardware-enforced zero-knowledge circuit breaker for microgrid load shifting and renewable energy dispatch.',
-    repo_url: 'https://github.com/raptor-ecosystem/green-switch',
-    demo_url: 'https://switch.raptor.dev',
-    track_id: 'trk_08',
-    track_name: 'Open Hardware',
-    team_name: 'Ampere Logic',
-    submitted_at: '2026-02-28T22:04:00Z',
-    state: 'submitted',
-  },
-  {
-    id: 'prj_05',
-    title: 'North Compass',
-    summary: 'Cryptographic identity attestation using local Ed25519 keypairs without external OAuth reliance.',
-    repo_url: 'https://github.com/raptor-ecosystem/north-compass',
-    demo_url: 'https://north-compass.raptor.dev',
-    track_id: 'trk_04',
-    track_name: 'Security',
-    team_name: 'Sovereign Guard',
-    submitted_at: '2026-02-28T22:12:00Z',
-    state: 'submitted',
-  },
-  {
-    id: 'prj_06',
-    title: 'Dry Harbour',
-    summary: 'Accessible screen-reader optimized canvas renderer complying with WCAG 2.2 AAA guidelines and zero subpixel shift.',
-    repo_url: 'https://github.com/raptor-ecosystem/dry-harbour',
-    demo_url: 'https://harbour.raptor.dev',
-    track_id: 'trk_03',
-    track_name: 'Accessibility',
-    team_name: 'Accessible Web Labs',
-    submitted_at: '2026-02-28T22:20:00Z',
-    state: 'submitted',
-  },
-  {
-    id: 'prj_07',
-    title: 'Still Beacon',
-    summary: 'Low-latency peer-to-peer classroom sync engine designed for intermittent rural connectivity and local mesh relays.',
-    repo_url: 'https://github.com/raptor-ecosystem/still-beacon',
-    demo_url: 'https://beacon.raptor.dev',
-    track_id: 'trk_07',
-    track_name: 'Education',
-    team_name: 'Beacon Node',
-    submitted_at: '2026-02-28T22:31:00Z',
-    state: 'submitted',
-  },
-  {
-    id: 'prj_08',
-    title: 'Hollow Signal',
-    summary: 'Automated privacy-preserving biometric vitals analysis executing entirely in browser WebAssembly with zero telemetry.',
-    repo_url: 'https://github.com/raptor-ecosystem/hollow-signal',
-    demo_url: 'https://signal.raptor.dev',
-    track_id: 'trk_06',
-    track_name: 'Health',
-    team_name: 'BioWasm Core',
-    submitted_at: '2026-02-28T22:40:00Z',
-    state: 'submitted',
-  },
-];
-
 const TRACK_TAGS: { id: string; label: string; color: string }[] = [
   { id: 'all', label: 'All Tracks', color: 'border-slate-500/40 text-slate-700 dark:text-slate-300' },
   { id: 'trk_01', label: 'Developer Tools', color: 'border-amber-500/40 text-amber-600 dark:text-amber-400 bg-amber-500/10' },
@@ -130,7 +30,8 @@ const TRACK_TAGS: { id: string; label: string; color: string }[] = [
 ];
 
 export const GalleryPage: React.FC<GalleryPageProps> = ({ currentUser, onNavigate, onOpenAuth }) => {
-  const [projects, setProjects] = useState<Project[]>(FALLBACK_PROJECTS);
+  const [projects, setProjects] = useState<Project[]>([]);
+  const [galleryError, setGalleryError] = useState<boolean>(false);
   const [loading, setLoading] = useState<boolean>(true);
   const [selectedTrack, setSelectedTrack] = useState<string>('all');
   const [searchQuery, setSearchQuery] = useState<string>('');
@@ -157,32 +58,42 @@ export const GalleryPage: React.FC<GalleryPageProps> = ({ currentUser, onNavigat
   // Deterministic seed for ballot shuffle
   const ballotSeed = useMemo(() => Math.floor(Date.now() / (1000 * 60 * 60)), []);
 
-  // Fetch submitted projects from the API
+  // Fetch all pages so local search, filters and sort cover every submission.
   useEffect(() => {
     let isMounted = true;
-    // /api/gallery returns real team & track names via SQL JOIN
-    apiRequest<{ items: Array<Project & { team: string; track: string }>; total: number }>('/api/gallery')
-      .then((res) => {
-        if (isMounted && res.items && res.items.length > 0) {
-          setProjects(
-            res.items.map((p) => ({
-              ...p,
-              // /api/gallery uses 'team' and 'track' keys; normalise to the
-              // shared Project shape which uses team_name / track_name
-              team_name: p.team || p.team_name,
-              track_name: p.track || p.track_name,
-            }))
+    const fetchProjects = async () => {
+      setLoading(true);
+      setGalleryError(false);
+      try {
+        const all: Project[] = [];
+        let page = 1;
+        let total = 0;
+        do {
+          const res = await apiRequest<{ items: Array<Project & { team: string; track: string }>; total: number }>(
+            `/api/gallery?page=${page}&limit=100`
           );
+          if (!Array.isArray(res.items) || !Number.isFinite(res.total)) throw new Error('Invalid gallery response');
+          total = res.total;
+          all.push(...res.items.map((p) => ({
+            ...p,
+            team_name: p.team || p.team_name,
+            track_name: p.track || p.track_name,
+          })));
+          if (res.items.length === 0 && all.length < total) throw new Error('Incomplete gallery response');
+          page += 1;
+        } while (all.length < total);
+        if (isMounted) setProjects(all);
+      } catch (err) {
+        console.error('Gallery API unavailable:', err);
+        if (isMounted) {
+          setProjects([]);
+          setGalleryError(true);
         }
-        // if items is empty the component keeps FALLBACK_PROJECTS (initial state)
-      })
-      .catch((err) => {
-        console.warn('Gallery API unavailable, showing demo projects:', err);
-        // FALLBACK_PROJECTS remain in state — already set as initial value
-      })
-      .finally(() => {
+      } finally {
         if (isMounted) setLoading(false);
-      });
+      }
+    };
+    fetchProjects();
 
     // Fetch user votes if authenticated
     if (currentUser?.email) {
@@ -347,13 +258,13 @@ export const GalleryPage: React.FC<GalleryPageProps> = ({ currentUser, onNavigat
           <div className="space-y-2 max-w-3xl">
             <div className="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-slate-100 dark:bg-[#10141f] border border-slate-300 dark:border-slate-800 text-[11px] font-mono text-slate-700 dark:text-slate-300">
               <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-              <span>PUBLIC REPOSITORY, LIVE DEMOS & COMMUNITY VOTING</span>
+              <span>PUBLIC PROJECTS & COMMUNITY VOTING</span>
             </div>
             <h1 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-slate-900 dark:text-white tracking-tight">
               Project Showcase Gallery
             </h1>
             <p className="text-sm sm:text-base text-slate-600 dark:text-slate-300 leading-relaxed">
-              Explore validated hackathon submissions, open-source code repositories, interactive prototypes, and participate in community voting.
+              Explore submitted projects, their repositories and any available demos, and participate in community voting.
             </p>
           </div>
 
@@ -388,7 +299,7 @@ export const GalleryPage: React.FC<GalleryPageProps> = ({ currentUser, onNavigat
                 {totalDemos}
               </div>
               <div className="text-[10px] uppercase font-mono tracking-wider text-slate-500">
-                Live Demos
+                Demos
               </div>
             </div>
           </div>
@@ -717,7 +628,7 @@ export const GalleryPage: React.FC<GalleryPageProps> = ({ currentUser, onNavigat
         <div className="flex items-center justify-between text-xs font-mono text-slate-500 dark:text-slate-400">
           <span className="flex items-center space-x-2">
             <span>
-              SHOWING <strong className="text-slate-900 dark:text-white">{filteredProjects.length}</strong> VERIFIED SUBMISSION{filteredProjects.length === 1 ? '' : 'S'}
+              {loading ? 'LOADING SUBMISSIONS' : galleryError ? 'GALLERY UNAVAILABLE' : <>SHOWING <strong className="text-slate-900 dark:text-white">{filteredProjects.length}</strong> OF {projects.length} SUBMISSION{projects.length === 1 ? '' : 'S'}</>}
             </span>
             {loading && <span className="text-amber-500 animate-pulse text-[10px]">● SYNCING...</span>}
           </span>
@@ -731,24 +642,22 @@ export const GalleryPage: React.FC<GalleryPageProps> = ({ currentUser, onNavigat
           )}
         </div>
 
-        {filteredProjects.length === 0 ? (
-          <div className="text-center py-16 px-4 rounded-2xl border border-dashed border-slate-300 dark:border-slate-800 space-y-3">
-            <div className="text-3xl">🔍</div>
+        {loading || galleryError || filteredProjects.length === 0 ? (
+          <div className="text-center py-16 px-4 rounded-2xl border border-dashed border-slate-300 dark:border-slate-800 space-y-3" role="status">
             <h3 className="text-base font-bold text-slate-800 dark:text-slate-200">
-              No matching projects found
+              {loading ? 'Loading projects...' : galleryError ? 'Gallery unavailable' : projects.length === 0 ? 'No submissions yet' : 'No matching projects found'}
             </h3>
             <p className="text-xs text-slate-500 max-w-sm mx-auto">
-              Try adjusting your search terms or clearing the selected track filter to view other submissions.
+              {galleryError ? 'Could not load submissions. Please try again later.' : !loading && projects.length > 0 ? 'Try adjusting your search terms or clearing the selected track filter.' : ''}
             </p>
-            <button
-              onClick={() => {
-                setSearchQuery('');
-                setSelectedTrack('all');
-              }}
-              className="px-4 py-2 rounded-lg bg-amber-500 text-slate-950 font-semibold text-xs font-mono"
-            >
-              Clear All Filters
-            </button>
+            {!loading && !galleryError && projects.length > 0 && (
+              <button
+                onClick={() => { setSearchQuery(''); setSelectedTrack('all'); }}
+                className="px-4 py-2 rounded-lg bg-amber-500 text-slate-950 font-semibold text-xs font-mono"
+              >
+                Clear All Filters
+              </button>
+            )}
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -874,11 +783,11 @@ export const GalleryPage: React.FC<GalleryPageProps> = ({ currentUser, onNavigat
           <span>RAPTOR PROJECT SHOWCASE // OPEN ACCESS</span>
         </div>
         <div className="flex items-center space-x-4">
-          <span>CONSENSUS VERIFIED</span>
+          <span>PUBLIC GALLERY</span>
           <span>•</span>
           <span>ZERO VENDOR LOCK-IN</span>
           <span>•</span>
-          <span>v2.4.0-STABLE</span>
+          <span>SELF-HOSTED</span>
         </div>
       </footer>
     </div>

@@ -99,15 +99,11 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                 <span className="w-3 h-3 rounded-full bg-amber-500/80" />
                 <span className="w-3 h-3 rounded-full bg-emerald-500/80" />
                 <span className="text-xs font-mono text-slate-500 dark:text-slate-400 ml-3">
-                  raptor-cockpit // consensus-v2.production
+                  raptor-cockpit // interactive preview
                 </span>
               </div>
               <div className="flex items-center space-x-3 text-[11px] font-mono text-slate-500 dark:text-slate-400">
-                <span className="text-emerald-600 dark:text-emerald-400 flex items-center space-x-1">
-                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-ping" />
-                  <span>LIVE CONSENSUS</span>
-                </span>
-                <span>LATENCY: 42ms</span>
+                <span>DEMO DATA - NOT LIVE</span>
               </div>
             </div>
 
@@ -122,18 +118,18 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                 </div>
                 <div className="p-4 rounded-xl bg-slate-50 dark:bg-[#141824] border border-slate-200 dark:border-slate-800/80">
                   <div className="text-[10px] uppercase font-mono text-slate-500">Submissions</div>
-                  <div className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white mt-1">42 Teams</div>
-                  <div className="text-[10px] text-emerald-600 dark:text-emerald-400 font-mono mt-0.5">100% On-Time</div>
+                  <div className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white mt-1">Team submissions</div>
+                  <div className="text-[10px] text-emerald-600 dark:text-emerald-400 font-mono mt-0.5">Deadline controls</div>
                 </div>
                 <div className="p-4 rounded-xl bg-slate-50 dark:bg-[#141824] border border-slate-200 dark:border-slate-800/80">
                   <div className="text-[10px] uppercase font-mono text-slate-500">Assigned Judges</div>
-                  <div className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white mt-1">12 Evaluators</div>
+                  <div className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white mt-1">Judge assignments</div>
                   <div className="text-[10px] text-indigo-600 dark:text-indigo-400 font-mono mt-0.5">Role Isolated</div>
                 </div>
                 <div className="p-4 rounded-xl bg-slate-50 dark:bg-[#141824] border border-slate-200 dark:border-slate-800/80">
                   <div className="text-[10px] uppercase font-mono text-slate-500">Consensus Engine</div>
                   <div className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white mt-1">Empirical Bayes</div>
-                  <div className="text-[10px] text-cyan-600 dark:text-cyan-400 font-mono mt-0.5">Zero Bias Model</div>
+                  <div className="text-[10px] text-cyan-600 dark:text-cyan-400 font-mono mt-0.5">Score normalization</div>
                 </div>
               </div>
 
