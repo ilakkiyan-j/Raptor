@@ -5,19 +5,11 @@ import unittest
 from datetime import timedelta
 from fastapi.testclient import TestClient
 
-<<<<<<<< HEAD:tests/test_events_and_judging.py
 class EventsAndJudgingTests(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         cls.tmp=tempfile.TemporaryDirectory()
         os.environ['DB_PATH']=os.path.join(cls.tmp.name,'events_judging.sqlite3')
-========
-class EventWorkflowTests(unittest.TestCase):
-    @classmethod
-    def setUpClass(cls):
-        cls.tmp=tempfile.TemporaryDirectory()
-        os.environ['DB_PATH']=os.path.join(cls.tmp.name,'event_workflows.sqlite3')
->>>>>>>> origin/main:tests/test_event_workflows.py
         from app import db
         db.DB_PATH=os.environ['DB_PATH']
         from app.main import app
