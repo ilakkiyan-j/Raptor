@@ -1,7 +1,7 @@
 # 🦅 Raptor
 
 <div align="center">
-  <img src="raptor_logo.png" alt="Raptor Logo" width="220" />
+  <img src="apps/web/public/raptor_logo.svg" alt="Raptor Logo" width="160" />
   <h3><strong>Build the platform that will judge you.</strong></h3>
   <p>An open-source, self-hostable, air-gapped hackathon submission and judging platform engineered for <strong>DOGFOOD 2026</strong>.</p>
 </div>
@@ -178,7 +178,6 @@ Per DOGFOOD 2026 specification requirements, the platform makes clear architectu
 * 📊 [**DATA-MODEL.md**](DATA-MODEL.md) — Complete SQLite schema, entity relationship model, indexing strategy, and JSON import/export formats.
 * ⚖️ [**JUDGING.md**](JUDGING.md) — Multi-judge normalization mathematics, empirical Z-scores, Bayesian shrinkage derivation, Bradley–Terry pairwise estimator, and peer isolation proofs.
 * 🛡️ [**THREAT-MODEL.md**](THREAT-MODEL.md) — STRIDE threat analysis, Sybil voting mitigation, collusion defense, and formula injection sanitization.
-* 📋 [**raptor-dogfood-t1-t4-bonus-checklist.md**](raptor-dogfood-t1-t4-bonus-checklist.md) — Item-by-item verification checklist covering all T1–T4 requirements and 4 bonus challenges.
 * 🧪 [**tests/README.md**](tests/README.md) — Test runner instructions for automated acceptance checks and Python unit/integration tests.
 
 ---
