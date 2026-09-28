@@ -1,39 +1,22 @@
-"""Phase 3 (T4 Stretch Features) & Phase 4 (Bonus Challenges) API Endpoints.
-Webhooks, Cryptographic Certificates, Embeddable Widgets, Event Portability & Bradley-Terry Pairwise Engine.
-"""
+"""External integrations, webhooks dispatch, cryptographic credentials, embeddable widgets, and event portability."""
 import hashlib
 import hmac
 import json
-import math
 import secrets
-from datetime import datetime
 from typing import Any, Dict, List, Optional
 from fastapi import APIRouter, HTTPException, Request, Response
 from fastapi.responses import HTMLResponse
 from pydantic import BaseModel, Field
 
 from .auth import actor, csrf, iso, require_role, utc_now
+from .common import audit, event
 from .db import connect
 
 router = APIRouter(prefix='/api')
 
 
-def event(db: Any, eid: str):
-    row = db.execute('SELECT * FROM events WHERE id=?', (eid,)).fetchone()
-    if not row:
-        raise HTTPException(404, 'Event not found')
-    return row
-
-
-def audit(db: Any, u: str, eid: str, action: str, subject: str):
-    db.execute(
-        'INSERT INTO audit_events(actor_id,event_id,action,subject_id,happened_at) VALUES (?,?,?,?,?)',
-        (u, eid, action, subject, iso(utc_now())),
-    )
-
-
 # -----------------------------------------------------------------------------
-# 1. WEBHOOKS DISPATCHER & MANAGEMENT (T4)
+# 1. WEBHOOKS DISPATCHER & MANAGEMENT
 # -----------------------------------------------------------------------------
 
 class WebhookCreateIn(BaseModel):
@@ -112,7 +95,7 @@ def delete_webhook(event_id: str, webhook_id: str, request: Request):
         u = actor(db, request)
         require_role(db, u['id'], event_id, 'organizer', 'admin')
         csrf(db, request, request.headers.get('x-csrf-token'))
-        
+
         hook = db.execute('SELECT 1 FROM webhooks WHERE id=? AND event_id=?', (webhook_id, event_id)).fetchone()
         if not hook:
             raise HTTPException(404, 'Webhook not found')
@@ -128,7 +111,7 @@ def test_webhook(event_id: str, webhook_id: str, request: Request):
     with connect() as db:
         u = actor(db, request)
         require_role(db, u['id'], event_id, 'organizer', 'admin')
-        
+
         hook = db.execute('SELECT * FROM webhooks WHERE id=? AND event_id=?', (webhook_id, event_id)).fetchone()
         if not hook:
             raise HTTPException(404, 'Webhook not found')
@@ -156,7 +139,7 @@ def get_webhook_deliveries(event_id: str, webhook_id: str, request: Request):
 
 
 # -----------------------------------------------------------------------------
-# 2. CRYPTOGRAPHIC CERTIFICATES & PUBLIC VERIFIER (T4)
+# 2. CRYPTOGRAPHIC CERTIFICATES & VERIFICATION
 # -----------------------------------------------------------------------------
 
 def sign_certificate(cert_id: str, event_id: str, project_id: str, recipient: str, award: str, issued_at: str) -> str:
@@ -175,7 +158,7 @@ def generate_event_certificates(event_id: str, body: GenerateCertificatesIn, req
         u = actor(db, request)
         require_role(db, u['id'], event_id, 'organizer', 'admin')
         csrf(db, request, request.headers.get('x-csrf-token'))
-        ev = event(db, event_id)
+        event(db, event_id)
 
         projects = db.execute(
             "SELECT p.id, p.team_id, p.title, t.name as team_name FROM projects p JOIN teams t ON p.team_id=t.id WHERE p.event_id=? AND p.state='submitted'",
@@ -217,7 +200,6 @@ def get_certificate(cert_id: str):
             raise HTTPException(404, 'Certificate not found')
 
         item = dict(row)
-        # Verify signature
         expected_sig = sign_certificate(
             item['id'], item['event_id'], item['project_id'],
             item['recipient_name'], item['award_title'], item['issued_at']
@@ -236,7 +218,7 @@ def get_certificate(cert_id: str):
 
 
 # -----------------------------------------------------------------------------
-# 3. EMBEDDABLE GALLERY WIDGET (T4)
+# 3. EMBEDDABLE GALLERY WIDGET
 # -----------------------------------------------------------------------------
 
 @router.get('/embed/gallery/{event_id}', response_class=HTMLResponse)
@@ -245,7 +227,7 @@ def embed_gallery(event_id: str):
         ev = db.execute('SELECT * FROM events WHERE id=?', (event_id,)).fetchone()
         if not ev:
             raise HTTPException(404, 'Event not found')
-        
+
         projects = db.execute(
             """SELECT p.id, p.title, p.summary, p.repo_url, t.name as track_name, tm.name as team_name
                FROM projects p
@@ -305,7 +287,7 @@ def embed_gallery(event_id: str):
 
 
 # -----------------------------------------------------------------------------
-# 4. BULK EVENT IMPORT & EXPORT (T4)
+# 4. BULK EVENT IMPORT & EXPORT
 # -----------------------------------------------------------------------------
 
 @router.get('/events/{event_id}/export.json')
@@ -335,113 +317,4 @@ def export_event_json(event_id: str, request: Request):
             'projects': projects,
             'ballots': ballots,
             'scores': scores,
-        }
-
-
-# -----------------------------------------------------------------------------
-# 5. BRADLEY-TERRY PAIRWISE JUDGING (BONUS 2)
-# -----------------------------------------------------------------------------
-
-class PairwiseVoteIn(BaseModel):
-    winner_project_id: str
-    loser_project_id: str
-    track_id: Optional[str] = None
-
-
-@router.post('/events/{event_id}/pairwise-vote')
-def submit_pairwise_vote(event_id: str, body: PairwiseVoteIn, request: Request):
-    """Pairwise head-to-head project comparison by assigned judge."""
-    with connect() as db:
-        u = actor(db, request)
-        require_role(db, u['id'], event_id, 'judge', 'organizer', 'admin')
-        csrf(db, request, request.headers.get('x-csrf-token'))
-
-        judge = db.execute('SELECT id FROM judges WHERE user_id=? AND event_id=?', (u['id'], event_id)).fetchone()
-        judge_id = judge['id'] if judge else 'jdg_organizer'
-
-        if body.winner_project_id == body.loser_project_id:
-            raise HTTPException(422, 'Cannot compare a project to itself')
-
-        # Check projects exist
-        p1 = db.execute('SELECT 1 FROM projects WHERE id=? AND event_id=?', (body.winner_project_id, event_id)).fetchone()
-        p2 = db.execute('SELECT 1 FROM projects WHERE id=? AND event_id=?', (body.loser_project_id, event_id)).fetchone()
-        if not p1 or not p2:
-            raise HTTPException(404, 'One or both projects not found')
-
-        comp_id = 'cmp_' + secrets.token_hex(8)
-        db.execute(
-            """INSERT OR REPLACE INTO pairwise_comparisons(id, event_id, judge_id, track_id, winner_project_id, loser_project_id, created_at)
-               VALUES (?,?,?,?,?,?,?)""",
-            (comp_id, event_id, judge_id, body.track_id, body.winner_project_id, body.loser_project_id, iso(utc_now()))
-        )
-        audit(db, u['id'], event_id, 'pairwise.vote', f'{body.winner_project_id}>{body.loser_project_id}')
-        return {'status': 'recorded', 'comparison_id': comp_id}
-
-
-@router.get('/events/{event_id}/pairwise-rankings')
-def calculate_pairwise_rankings(event_id: str):
-    """Compute Bradley-Terry Maximum Likelihood Estimator latent skill rankings."""
-    with connect() as db:
-        event(db, event_id)
-        projects = db.execute(
-            "SELECT p.id, p.title, t.name as track_name, tm.name as team_name FROM projects p JOIN tracks t ON p.track_id=t.id JOIN teams tm ON p.team_id=tm.id WHERE p.event_id=? AND p.state='submitted'",
-            (event_id,)
-        ).fetchall()
-
-        comparisons = db.execute(
-            'SELECT winner_project_id, loser_project_id FROM pairwise_comparisons WHERE event_id=?',
-            (event_id,)
-        ).fetchall()
-
-        if not comparisons:
-            return {'status': 'no_comparisons', 'rankings': []}
-
-        # Initialize Bradley-Terry skills
-        proj_ids = [p['id'] for p in projects]
-        skills = {pid: 1.0 for pid in proj_ids}
-        wins = {pid: 0 for pid in proj_ids}
-        head_to_head: Dict[str, Dict[str, int]] = {p1: {p2: 0 for p2 in proj_ids} for p1 in proj_ids}
-
-        for c in comparisons:
-            w, l = c['winner_project_id'], c['loser_project_id']
-            if w in wins:
-                wins[w] += 1
-            if w in head_to_head and l in head_to_head[w]:
-                head_to_head[w][l] += 1
-
-        # Bradley-Terry iterative solver (MM algorithm)
-        for _ in range(50):
-            new_skills = {}
-            for i in proj_ids:
-                denom = 0.0
-                for j in proj_ids:
-                    if i != j:
-                        n_ij = head_to_head[i][j] + head_to_head[j][i]
-                        if n_ij > 0 and (skills[i] + skills[j]) > 0:
-                            denom += n_ij / (skills[i] + skills[j])
-                new_skills[i] = (wins[i] / denom) if denom > 0 else 0.001
-            
-            # Geometric mean normalization
-            log_sum = sum(math.log(max(1e-6, s)) for s in new_skills.values())
-            scale = math.exp(log_sum / max(1, len(proj_ids)))
-            skills = {k: v / scale for k, v in new_skills.items()}
-
-        sorted_projects = sorted(projects, key=lambda p: skills.get(p['id'], 0.0), reverse=True)
-
-        rankings = []
-        for idx, p in enumerate(sorted_projects):
-            rankings.append({
-                'rank': idx + 1,
-                'project_id': p['id'],
-                'title': p['title'],
-                'track_name': p['track_name'],
-                'team_name': p['team_name'],
-                'bt_latent_skill': round(skills.get(p['id'], 0.0), 4),
-                'wins': wins.get(p['id'], 0)
-            })
-
-        return {
-            'model': 'Bradley-Terry Maximum Likelihood Estimator',
-            'total_comparisons': len(comparisons),
-            'rankings': rankings
         }

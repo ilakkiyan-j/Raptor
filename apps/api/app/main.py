@@ -271,10 +271,19 @@ def export_csv(request: Request):
             writer.writerow(values)
         return Response(out.getvalue(),media_type='text/csv',headers={'Content-Disposition':'attachment; filename="scores.csv"'})
 
-from .phase2 import router as phase2_router
-from .phase3_4 import router as phase3_4_router
-app.include_router(phase2_router)
-app.include_router(phase3_4_router)
+from .auth import router as auth_router
+from .events import router as events_router
+from .teams import router as teams_router
+from .submissions import router as submissions_router
+from .judging import router as judging_router
+from .integrations import router as integrations_router
+
+app.include_router(auth_router)
+app.include_router(events_router)
+app.include_router(teams_router)
+app.include_router(submissions_router)
+app.include_router(judging_router)
+app.include_router(integrations_router)
 
 @app.get('/api/health')
 def health():

@@ -46,11 +46,11 @@ Raptor operates under an **air-gapped, zero-trust perimeter** designed for high-
 | Threat Category | Potential Attack Vector | Raptor Mitigation & Architectural Control | Implementation Reference |
 | :--- | :--- | :--- | :--- |
 | **Spoofing** | Impersonating another judge or organizer via session hijack | Cryptographically secure 256-bit token entropy (`secrets.token_hex`), `HttpOnly`, `SameSite=Lax` cookies, and session timeout invalidation. | `apps/api/app/auth.py` |
-| **Tampering** | Modifying submitted project repos or scores post-deadline | Database constraints (`CHECK(state IN ('draft', 'submitted'))`), immutable timestamps (`utc_now()`), deadline enforcement guards. | `apps/api/app/phase2.py:108` |
+| **Tampering** | Modifying submitted project repos or scores post-deadline | Database constraints (`CHECK(state IN ('draft', 'submitted'))`), immutable timestamps (`utc_now()`), deadline enforcement guards. | `apps/api/app/submissions.py:30` |
 | **Repudiation** | Denying an evaluation or ballot submission | Structured, append-only `audit_events` recording `actor_id`, `event_id`, `action`, `subject_id`, and ISO-8601 timestamp for every mutating request. | `apps/api/app/db.py:72` |
 | **Information Disclosure** | Peer judges or participants snooping on active scores before official reveal | Endpoint-level authorization enforcing `HTTP 403 Forbidden` if `requester_id != judge.user_id` and caller is not an organizer. | `apps/api/app/main.py:248` |
-| **Denial of Service** | Sybil voting spam or webhook flood | 20 votes/hr per IP hash & email rate-limiting, database unique constraints `UNIQUE(event_id, voter_email, project_id)`. | `apps/api/app/phase2.py:1260` |
-| **Elevation of Privilege** | Participant escalating to Organizer to modify track rubrics | Multi-tenant `roles` table checked in route dependencies (`require_role()`). Zero client-side role trust. | `apps/api/app/auth.py:65` |
+| **Denial of Service** | Sybil voting spam or webhook flood | 20 votes/hr per IP hash & email rate-limiting, database unique constraints `UNIQUE(event_id, voter_email, project_id)`. | `apps/api/app/submissions.py:80` |
+| **Elevation of Privilege** | Participant escalating to Organizer to modify track rubrics | Multi-tenant `roles` table checked in route dependencies (`require_role()`). Zero client-side role trust. | `apps/api/app/auth.py:39` |
 
 ---
 

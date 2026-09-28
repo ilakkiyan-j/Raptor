@@ -87,7 +87,7 @@ $$\gamma_i^{(t+1)} = \frac{W_i}{\sum_{j \ne i} \frac{n_{ij} + n_{ji}}{\gamma_i^{
 After each iteration, skills are normalized to preserve the geometric mean:
 $$\prod_{i=1}^N \gamma_i = 1 \implies \ln \gamma_i \leftarrow \ln \gamma_i - \frac{1}{N} \sum_{k=1}^N \ln \gamma_k$$
 
-Implemented in `apps/api/app/phase3_4.py:calculate_pairwise_rankings`.
+Implemented in `apps/api/app/judging.py:calculate_pairwise_rankings`.
 
 ---
 

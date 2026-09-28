@@ -20,7 +20,7 @@ The checker can finish with a normal exit even when checks fail, so read the out
 
 ## 2. Backend integration tests
 
-There are seven `unittest` test methods in `tests/test_glue.py`, `tests/test_phase2.py` and `tests/test_portal.py`. They exercise FastAPI through TestClient with temporary SQLite databases. They cover fixture counts and duplicate-title preservation, gallery and deadline behavior, role isolation and CSV access, rubric locking and results, an open-event/team-invite/project/judging flow, and `/api/health`, `/api/gallery` and `/me` response shapes.
+There are test methods across `tests/test_glue.py`, `tests/test_events_and_judging.py`, `tests/test_portal.py`, `tests/test_normalization.py`, `tests/test_auto_assign.py`, `tests/test_prizes.py`, and `tests/test_teams_flow.py`. They exercise FastAPI through TestClient with temporary SQLite databases. They cover fixture counts and duplicate-title preservation, gallery and deadline behavior, role isolation and CSV access, rubric locking and results, an open-event/team-invite/project/judging flow, and `/api/health`, `/api/gallery` and `/me` response shapes.
 
 Install the API dependencies, then run the tests from the repository root. In Windows Command Prompt:
 

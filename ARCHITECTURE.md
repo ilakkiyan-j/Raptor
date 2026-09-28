@@ -76,6 +76,16 @@ Raptor boots and functions completely offline:
 | **Persistence** | sqlite3, SQLite | `/data/portal.sqlite3` | ACID transactions, event records, audit logging |
 | **Acceptance** | Python Standard Lib | `run.py` | Official DOGFOOD compliance verification |
 
+### 4.1 Backend Domain Module Architecture (`apps/api/app/`)
+* **`main.py`**: Fast startup entrypoint, Jinja2 SSR routes for zero-JS crawlers, router mounting, `/api/health`.
+* **`auth.py`**: Cryptographic PBKDF2/SHA-256 session token management, CSRF validation, `/api/auth/register`.
+* **`events.py`**: Event lifecycle, tracks, prizes, rubric configuration, and admin telemetry / audit logs.
+* **`teams.py`**: Team formation, invite code issuance/resolution, membership roster.
+* **`submissions.py`**: Project submissions, draft lifecycles, comments, and community voting with anti-abuse rate limits.
+* **`judging.py`**: Judge management, track eligibility, automated assignments, rubric evaluation, Z-score/shrinkage normalization, and Bradley–Terry pairwise solver.
+* **`integrations.py`**: HMAC-SHA256 signed webhooks, cryptographic verifiable certificates, embeddable gallery widget, and bulk event JSON export.
+* **`assignment.py` & `normalization.py`**: Pure algorithmic engines for judge workload balancing and cross-judge score calibration.
+
 ---
 
 ## 5. Technology Stack Decisions
